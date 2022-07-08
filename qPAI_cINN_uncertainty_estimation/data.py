@@ -1,12 +1,15 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 
+
 def switch_seq_feat(tensor):
     # Return a view of the tesor with axes rearranged
     return torch.permute(tensor, (1, 0)).float()
 
+
 def float_transform(tensor):
     return tensor.float()
+
 
 class MultiSpectralPressureO2Dataset(Dataset):
     def __init__(self, spectra, oxygenations):
