@@ -1,18 +1,46 @@
+import torch
+from pathlib import Path
 """
 Global configuration for the experiments
 Originally from: https://github.com/VLL-HD/analyzing_inverse_problems/
 """
+
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda:0" if use_cuda else "cpu")
+torch.backends.cudnn.benchmark = True
+
+if use_cuda:
+    print("GPU available")
+    data_path = Path("../datasets")
+    output_file = Path("../output/cinn")
+else:
+    print("CPU only")
+    path = "C:\\Users\\dohert01\\PycharmProjects\\qPAI_cINN_uncertainty_estimation"
+    data_path = Path(
+        f"{path}\\datasets"
+    )
+    output_file = Path(f"{path}\\output\\cinn")
+
+batch_size = 3
+seq_length = 41
+n_features = 1
+inn_input_dim = 2
+lstm_hidden = 100
+inn_hidden = 128
+n_blocks = 6  # No. of invertible blocks in INN
+total_data_dims = 41
+experiment_name = "FlowPhantom_insilico_complicated"
+allowed_datapoints = [10]
+loss_display_cutoff = 10            # cut off the loss so the plot isn't ruined
 
 ######################
 #  General settings  #
 ######################
 
 # Filename to save the model under
-filename_out = "output/my_inn.pt"
+#output_file = "output/my_inn.pt"
 # Model to load and continue training. Ignored if empty string
 filename_in = ""
-# Compute device to perform the training on, 'cuda' or 'cpu'
-device = "cuda"
 # Use interactive visualization of losses and other plots. Requires visdom
 interactive_visualization = True
 # Run a list of python functions at test time after eacch epoch
@@ -22,74 +50,40 @@ test_time_functions = []
 #######################
 #  Training schedule  #
 #######################
-
+eps = 1e-6
 # Initial learning rate
-lr_init = 1.0e-3
+#lr_init = 1.0e-3
 # Batch size
-batch_size = 500
+#batch_size = 500
 # Total number of epochs to train for
 n_epochs = 60
+checkpoint_save_interval = 10
 # End the epoch after this many iterations (or when the train loader is exhausted)
-n_its_per_epoch = 200
+#n_its_per_epoch = 200
 # For the first n epochs, train with a much lower learning rate. This can be
 # helpful if the model immediately explodes.
-pre_low_lr = 0
+#pre_low_lr = 0
 # Decay exponentially each epoch, to final_decay*lr_init at the last epoch.
-final_decay = 0.02
+#final_decay = 0.02
 # L2 weight regularization of model parameters
-l2_weight_reg = 1e-5
+#l2_weight_reg = 1e-5
 # Parameters beta1, beta2 of the Adam optimizer
 adam_betas = (0.9, 0.95)
+
+weight_decay = 1e-5
+lr = 1e-3
+decay_by = 0.01
+gamma = decay_by**(1./n_epochs)
 
 #####################
 #  Data dimensions  #
 #####################
 
-ndim_x = 10
-ndim_pad_x = 0
-
-ndim_y = 5
-ndim_z = 5
-ndim_pad_zy = 0
-
-# Overwrite or import data loaders here.
-# See dkfz_train.py for reference.
-# from my_loaders import train_loader, test_loader
-
-train_loader, test_loader = None, None
-
-assert ndim_x + ndim_pad_x == ndim_y + ndim_z + ndim_pad_zy, "Dimensions don't match up"
 
 ############
 #  Losses  #
 ############
 
-train_forward_mmd = True
-train_backward_mmd = True
-train_reconstruction = True
-train_max_likelihood = False
-
-lambd_fit_forw = 1.0
-lambd_mmd_forw = 50.0
-lambd_reconstruct = 1.0
-lambd_mmd_back = 500.0
-lambd_max_likelihood = 1.0
-
-# Both for fitting, and for the reconstruction, perturb y with Gaussian
-# noise of this sigma
-add_y_noise = 5e-2
-# For reconstruction, perturb z
-add_z_noise = 2e-2
-# In all cases, perturb the zero padding
-add_pad_noise = 1e-2
-
-# For noisy forward processes, the sigma on y (assumed equal in all dimensions).
-# This is only used if mmd_back_weighted of train_max_likelihood are True.
-y_uncertainty_sigma = 0.12 * 4
-
-mmd_forw_kernels = [(0.2, 2), (1.5, 2), (3.0, 2)]
-mmd_back_kernels = [(0.2, 0.1), (0.2, 0.5), (0.2, 2)]
-mmd_back_weighted = False
 
 ###########
 #  Model  #

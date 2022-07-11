@@ -6,7 +6,7 @@ from FrEIA.framework import *
 if __name__ == "__main__":
 
     batch_size = 3
-    seq_length = 40
+    seq_length = 41
     n_features = 1
     inn_input_dim = 2
     lstm_hidden = 100
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     class WrappedModel(nn.Module):
 
-        def __init__(self, lstm_dim_in: int = 1, lstm_dim_out: int = 100, fcn_dim_out: int = 1, inn_dim_in: int = 2, cond_length: int = 40):
+        def __init__(self, lstm_dim_in: int = 1, lstm_dim_out: int = 100, fcn_dim_out: int = 1, inn_dim_in: int = 2, cond_length: int = 41):
             super().__init__()
             self.cond_network = CondNetwork(lstm_dim_in, lstm_dim_out, fcn_dim_out)
             self.inn = self.build_inn(inn_dim_in, cond_length)
@@ -86,3 +86,5 @@ if __name__ == "__main__":
     z, log_jac_det = model(data, label)
     nll = torch.mean(z ** 2) / 2 - torch.mean(log_jac_det) / 40  # total dimensions of data
     print(z, log_jac_det)
+
+# TODO - build training loop and load in data from dataloader, then actually train!

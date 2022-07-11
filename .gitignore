@@ -2,3 +2,4 @@ tutorials/
 jupyter*
 datasets/
 /notebooks/.ipynb_checkpoints/
+/output/
