@@ -127,4 +127,4 @@ epoch_losses_file = c.output_dir / f"epoch_losses_{start_time}.npy"
 with open(epoch_losses_file.resolve(), "wb") as f:
     np.save(f, np.array([epoch_losses]))
 
-save(f"{c.output_file}_{start_time}.pt", optim, model)
+#save(f"{c.output_file}_{start_time}.pt", optim, model)
