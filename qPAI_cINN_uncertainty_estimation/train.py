@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
             if i_epoch > 0 and (i_epoch % c.checkpoint_save_interval) == 0:
                 save(
-                    f"{c.output_file}_{start_time}_checkpoint_{i_epoch / c.checkpoint_save_overwrite:.1f}",
+                    f"{c.output_file}_{start_time}_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}",
                     optim,
                     model,
                 )
