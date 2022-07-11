@@ -15,7 +15,7 @@ if __name__ == "__main__":
     model = WrappedModel()
     if c.use_cuda:
         model.cuda()
-        model = nn.DataParallel(model)
+        #model = nn.DataParallel(model)
 
     training_dataloader = prepare_dataloader(c.data_path, c.experiment_name, 'training', c.allowed_datapoints, c.batch_size)
 
