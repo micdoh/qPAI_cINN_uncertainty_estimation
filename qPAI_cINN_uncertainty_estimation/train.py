@@ -73,9 +73,6 @@ if __name__ == "__main__":
                 optim.zero_grad()
                 loss_history.append(nll.item())
 
-                if i > 100:
-                    break
-
             loss_file = c.output_dir / f"loss_epoch_{i_epoch}_{start_time}.npy"
             with open(loss_file.resolve(), "wb") as f:
                 np.save(f, np.array([loss_history]))
@@ -106,8 +103,6 @@ if __name__ == "__main__":
                 )
                 # Calculate Loss
                 valid_loss += nll.item()
-                if i_val > 100:
-                    break
 
             logger.info(f'Epoch {i_epoch} \t\t '
                   f'Training Loss: {epoch_loss} \t\t '
