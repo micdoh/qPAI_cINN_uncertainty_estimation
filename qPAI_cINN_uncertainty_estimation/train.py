@@ -89,7 +89,7 @@ if __name__ == "__main__":
                     model,
                 )
 
-            valid_loss = 0.0
+            valid_loss = []
             model.eval()  # Optional when not using Model Specific layer
             for i_val, (data, label) in enumerate(validation_dataloader):
                 # Transfer Data to GPU if available
@@ -102,14 +102,15 @@ if __name__ == "__main__":
                         torch.mean(z ** 2) / 2 - torch.mean(log_jac_det) / c.total_data_dims
                 )
                 # Calculate Loss
-                valid_loss += nll.item()
+                valid_loss.append(nll.item())
 
+            valid_loss = np.mean(np.array(valid_loss), axis=0)
             logger.info(f'Epoch {i_epoch} \t\t '
                   f'Training Loss: {epoch_loss} \t\t '
                   f'Validation Loss: {valid_loss / len(validation_dataloader)}')
             model.train()
 
-            if min_valid_loss > valid_loss:
+            if abs(min_valid_loss) > abs(valid_loss):
                 logger.info(f'Validation Loss Decreased({min_valid_loss:.6f}--->{valid_loss:.6f}) \t Saving The Model')
                 min_valid_loss = valid_loss
                 save(f"{c.output_file}_{start_time}.pt", optim, model)
