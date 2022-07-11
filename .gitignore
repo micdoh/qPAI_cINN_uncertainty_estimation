@@ -3,3 +3,4 @@ jupyter*
 datasets/
 /notebooks/.ipynb_checkpoints/
 /output/
+/logs/

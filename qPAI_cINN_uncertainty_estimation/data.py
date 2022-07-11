@@ -27,7 +27,9 @@ def spectrum_processing(spectrum, allowed_datapoints):
     normalised_non_zero = spectrum_normalisation(non_zero_values)
 
     i = 0
-    masking_features = [0]*len(spectrum)  # Binary to indicate if wavelength has been zeroed (or was zero already)
+    masking_features = [0] * len(
+        spectrum
+    )  # Binary to indicate if wavelength has been zeroed (or was zero already)
     for index in non_zero_indices[0]:
         incomplete_spectrum[index] = normalised_non_zero[i]
         masking_features[index] = 1
@@ -83,22 +85,26 @@ class MultiSpectralPressureO2Dataset(Dataset):
 
 
 def prepare_dataloader(
-        data_path: Path,
-        experiment_name: str,
-        train_val_test: str,
-        allowed_datapoints: list,
-        batch_size: int,
-        transform = reshape_and_float,
-        target_transform = two_vector_float,
+    data_path: Path,
+    experiment_name: str,
+    train_val_test: str,
+    allowed_datapoints: list,
+    batch_size: int,
+    transform=reshape_and_float,
+    target_transform=two_vector_float,
 ):
     spectra_file = data_path / experiment_name / f"{train_val_test}_spectra.pt"
-    oxygenations_file = data_path / experiment_name / f"{train_val_test}_oxygenations.pt"
+    oxygenations_file = (
+        data_path / experiment_name / f"{train_val_test}_oxygenations.pt"
+    )
 
     spectra_original = torch.load(spectra_file)
     oxygenations_original = torch.load(oxygenations_file)
 
     processed_spectra = batch_spectrum_processing(spectra_original, allowed_datapoints)
-    processed_oxygenations = torch.reshape(oxygenations_original, (len(oxygenations_original), 1))
+    processed_oxygenations = torch.reshape(
+        oxygenations_original, (len(oxygenations_original), 1)
+    )
 
     dataset = MultiSpectralPressureO2Dataset(
         processed_spectra,
@@ -109,6 +115,7 @@ def prepare_dataloader(
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     return dataloader
+
 
 # Example calls of prepare_dataloader()
 # training_dataloader = prepare_dataloader(c.data_path, c.experiment_name, 'training', c.allowed_datapoints, c.batch_size)

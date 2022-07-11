@@ -1,25 +1,28 @@
 import torch
 from pathlib import Path
+
 """
 Global configuration for the experiments
 Originally from: https://github.com/VLL-HD/analyzing_inverse_problems/
 """
 
 use_cuda = torch.cuda.is_available()
-device = torch.device("cuda:0" if use_cuda else "cpu")
+device = torch.device("cuda" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
 if use_cuda:
     print("GPU available")
     data_path = Path("../datasets")
+    output_dir = Path("../output")
     output_file = Path("../output/cinn")
+    log_dir = Path("../logs")
 else:
     print("CPU only")
     path = "C:\\Users\\dohert01\\PycharmProjects\\qPAI_cINN_uncertainty_estimation"
-    data_path = Path(
-        f"{path}\\datasets"
-    )
+    data_path = Path(f"{path}\\datasets")
+    output_dir = Path(f"{path}\\output")
     output_file = Path(f"{path}\\output\\cinn")
+    log_dir = Path(f"{path}\\logs")
 
 batch_size = 3
 seq_length = 41
@@ -31,14 +34,14 @@ n_blocks = 6  # No. of invertible blocks in INN
 total_data_dims = 41
 experiment_name = "FlowPhantom_insilico_complicated"
 allowed_datapoints = [10]
-loss_display_cutoff = 10            # cut off the loss so the plot isn't ruined
+loss_display_cutoff = 10  # cut off the loss so the plot isn't ruined
 
 ######################
 #  General settings  #
 ######################
 
 # Filename to save the model under
-#output_file = "output/my_inn.pt"
+# output_file = "output/my_inn.pt"
 # Model to load and continue training. Ignored if empty string
 filename_in = ""
 # Use interactive visualization of losses and other plots. Requires visdom
@@ -52,28 +55,28 @@ test_time_functions = []
 #######################
 eps = 1e-6
 # Initial learning rate
-#lr_init = 1.0e-3
+# lr_init = 1.0e-3
 # Batch size
-#batch_size = 500
+# batch_size = 500
 # Total number of epochs to train for
-n_epochs = 60
+n_epochs = 50
 checkpoint_save_interval = 10
 # End the epoch after this many iterations (or when the train loader is exhausted)
-#n_its_per_epoch = 200
+# n_its_per_epoch = 200
 # For the first n epochs, train with a much lower learning rate. This can be
 # helpful if the model immediately explodes.
-#pre_low_lr = 0
+# pre_low_lr = 0
 # Decay exponentially each epoch, to final_decay*lr_init at the last epoch.
-#final_decay = 0.02
+# final_decay = 0.02
 # L2 weight regularization of model parameters
-#l2_weight_reg = 1e-5
+# l2_weight_reg = 1e-5
 # Parameters beta1, beta2 of the Adam optimizer
 adam_betas = (0.9, 0.95)
 
 weight_decay = 1e-5
 lr = 1e-3
 decay_by = 0.01
-gamma = decay_by**(1./n_epochs)
+gamma = decay_by ** (1.0 / n_epochs)
 
 #####################
 #  Data dimensions  #
