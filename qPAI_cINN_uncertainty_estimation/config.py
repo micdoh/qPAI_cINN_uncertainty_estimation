@@ -24,7 +24,7 @@ else:
     output_file = Path(f"{path}\\output\\cinn")
     log_dir = Path(f"{path}\\logs")
 
-batch_size = 3
+batch_size = 2048
 seq_length = 41
 n_features = 1
 inn_input_dim = 2
