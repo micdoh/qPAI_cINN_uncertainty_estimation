@@ -35,7 +35,7 @@ if __name__ == "__main__":
         eps=c.eps,
         weight_decay=c.weight_decay,
     )
-    # weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=c.gamma)
+    weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=c.gamma)
     min_valid_loss = np.inf
 
     try:
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                 optim.zero_grad()
                 loss_history.append(nll.item())
 
-            loss_file = c.output_dir / f"loss_epoch_{i_epoch}_{start_time}.npy"
+            loss_file = c.output_dir / f"{start_time}@loss_epoch_{i_epoch}.npy"
             with open(loss_file.resolve(), "wb") as f:
                 np.save(f, np.array([loss_history]))
 
@@ -83,8 +83,9 @@ if __name__ == "__main__":
             logger.info(f"Epoch {i_epoch} \t\t Training Loss: {epoch_loss}")
 
             if i_epoch > 0 and (i_epoch % c.checkpoint_save_interval) == 0:
+                model_checkpoint_file = c.output_dir / f"{start_time}@cinn_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}"
                 save(
-                    f"{c.output_file}_{start_time}_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}",
+                    model_checkpoint_file.resolve(),
                     optim,
                     model,
                 )
@@ -110,17 +111,21 @@ if __name__ == "__main__":
                   f'Validation Loss: {valid_loss / len(validation_dataloader)}')
             model.train()
 
-            if abs(min_valid_loss) > abs(valid_loss):
+            if min_valid_loss > valid_loss:
                 logger.info(f'Validation Loss Decreased({min_valid_loss:.6f}--->{valid_loss:.6f}) \t Saving The Model')
                 min_valid_loss = valid_loss
-                save(f"{c.output_file}_{start_time}.pt", optim, model)
+                model_file = c.output_dir / f"{start_time}@cinn.pt"
+                save(model_file.resolve(), optim, model)
+
+            weight_scheduler.step()
 
     except Exception as e:
-        save(f"{c.output_file}_{start_time}_ABORT.pt", optim, model)
+        model_abort_file = c.output_dir / f"{start_time}@cinn_ABORT.pt"
+        save(model_abort_file.resolve(), optim, model)
         raise e
 
-epoch_losses_file = c.output_dir / f"epoch_losses_{start_time}.npy"
-with open(epoch_losses_file.resolve(), "wb") as f:
-    np.save(f, np.array([epoch_losses]))
+    epoch_losses_file = c.output_dir / f"{start_time}@epoch_losses.npy"
+    with open(epoch_losses_file.resolve(), "wb") as f:
+        np.save(f, np.array([epoch_losses]))
 
-#save(f"{c.output_file}_{start_time}.pt", optim, model)
+    #save(f"{c.output_file}_{start_time}.pt", optim, model)

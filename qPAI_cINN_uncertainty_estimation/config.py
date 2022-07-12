@@ -14,14 +14,12 @@ if use_cuda:
     print("GPU available")
     data_path = Path("../datasets")
     output_dir = Path("../output")
-    output_file = Path("../output/cinn")
     log_dir = Path("../logs")
 else:
     print("CPU only")
     path = "C:\\Users\\dohert01\\PycharmProjects\\qPAI_cINN_uncertainty_estimation"
     data_path = Path(f"{path}\\datasets")
     output_dir = Path(f"{path}\\output")
-    output_file = Path(f"{path}\\output\\cinn")
     log_dir = Path(f"{path}\\logs")
 
 batch_size = 2048
@@ -31,7 +29,7 @@ inn_input_dim = 2
 lstm_hidden = 100
 inn_hidden = 128
 n_blocks = 12  # No. of invertible blocks in INN
-total_data_dims = 41
+total_data_dims = 2  # TODO - Should this be 41 or 82 (after masking)? Or 2!
 experiment_name = "FlowPhantom_insilico_complicated"
 allowed_datapoints = [10]
 loss_display_cutoff = 10  # cut off the loss so the plot isn't ruined
@@ -59,7 +57,7 @@ eps = 1e-6
 # Batch size
 # batch_size = 500
 # Total number of epochs to train for
-n_epochs = 100
+n_epochs = 101
 checkpoint_save_interval = 20
 # End the epoch after this many iterations (or when the train loader is exhausted)
 # n_its_per_epoch = 200
