@@ -1,8 +1,12 @@
+import logging
 import torch
 import torch.nn as nn
 from FrEIA.modules import *
 from FrEIA.framework import *
 import qPAI_cINN_uncertainty_estimation.config as c
+
+
+logger = logging.getLogger(__name__)
 
 
 def subnet(dims_in, dims_out):
@@ -75,10 +79,20 @@ class WrappedModel(nn.Module):
 
         return z, log_jac_det
 
-    def reverse_sample(self, z, data):
+    def reverse_sample(self, data, z):
         cond = self.get_condition(data)
         return self.inn(z, cond, rev=True)
 
 
 def save(name, optim, model):
     torch.save({"opt": optim.state_dict(), "net": model.state_dict()}, name)
+
+
+def load(filepath, model, optim):
+    state_dicts = torch.load(filepath)
+    network_state_dict = {k: v for k, v in state_dicts['net'].items() if 'tmp_var' not in k}
+    model.load_state_dict(network_state_dict)
+    try:
+        optim.load_state_dict(state_dicts['opt'])
+    except Exception as e:
+        logger.info(f'Cannot load optimizer: {e}')
