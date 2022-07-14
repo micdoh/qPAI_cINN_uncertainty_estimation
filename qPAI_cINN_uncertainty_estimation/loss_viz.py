@@ -37,7 +37,8 @@ def read_files_into_array(date: str, name: str, suffix: str = '.npy', seq: bool 
 
 
 if __name__ == "__main__":
-    date = '2022-07-12_11_08_52'
+    #date = '2022-07-12_11_08_52'
+    date = '2022-07-14_17_52_20'
 
     loss_data = read_files_into_array(date, 'loss_epoch', axis=1)
     fig, ax = plt.subplots()
@@ -65,7 +66,7 @@ if __name__ == "__main__":
 
     loss_data = read_files_into_array(date, 'valid_losses', seq=False, axis=0)
     fig3, ax3 = plt.subplots()
-    ax3.set_title('Epoch Losses')
+    ax3.set_title('Validation Losses')
     ax3.set_xlabel('Epochs')
     ax3.set_ylabel('NLL Loss')
     ax3.plot(np.arange(loss_data.shape[1]), loss_data.T)

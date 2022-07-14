@@ -25,7 +25,18 @@ if __name__ == "__main__":
         c.data_path, c.experiment_name, 'test', c.allowed_datapoints, c.batch_size
     )
 
-    model = WrappedModel()
+    if c.use_default_model:
+        model = WrappedModel()
+    else:
+        model = WrappedModel(
+            lstm_dim_in=c.lstm_input_dim,
+            lstm_dim_out=c.lstm_hidden,
+            fcn_dim_out=c.fcn_dim_out,
+            inn_dim_in=c.inn_input_dim,
+            cond_length=c.cond_length,
+            n_blocks=c.n_blocks,
+        )
+
     if c.use_cuda:
         model.cuda()
     optim = torch.optim.Adam(
