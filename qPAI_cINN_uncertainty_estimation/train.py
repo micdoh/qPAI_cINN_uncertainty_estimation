@@ -92,8 +92,6 @@ if __name__ == "__main__":
             epoch_loss = np.mean(np.array(loss_history), axis=0)
             epoch_losses.append(epoch_loss)
 
-            logger.info(f"Epoch {i_epoch} \t\t Training Loss: {epoch_loss}")
-
             if i_epoch > 0 and (i_epoch % c.checkpoint_save_interval) == 0:
                 model_checkpoint_file = output_dir / f"{start_time}@cinn_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}"
                 save(
@@ -116,9 +114,9 @@ if __name__ == "__main__":
                 valid_loss.append(nll.item())
 
             valid_loss = np.mean(np.array(valid_loss), axis=0)
-            logger.info(f'Epoch {i_epoch} \t\t '
-                  f'Training Loss: {epoch_loss} \t\t '
-                  f'Validation Loss: {valid_loss / len(validation_dataloader)}')
+            logger.info(f'Epoch {i_epoch} \t '
+                  f'Training Loss: {epoch_loss:.6f} \t '
+                  f'Validation Loss: {valid_loss:.6f}')
             model.train()
 
             if min_valid_loss > valid_loss:

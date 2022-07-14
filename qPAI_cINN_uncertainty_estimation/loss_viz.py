@@ -37,14 +37,16 @@ def read_files_into_array(date: str, name: str, suffix: str = '.npy', seq: bool 
 
 
 if __name__ == "__main__":
-    loss_data = read_files_into_array('2022-07-12_11_08_52', 'loss_epoch', axis=1)
+    date = '2022-07-12_11_08_52'
+
+    loss_data = read_files_into_array(date, 'loss_epoch', axis=1)
     fig, ax = plt.subplots()
     ax.set_title('Batch Losses')
     ax.set_xlabel('Batches')
     ax.set_ylabel('NLL Loss')
     ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
 
-    loss_data = read_files_into_array('2022-07-12_11_08_52', 'loss_epoch', axis=0)
+    loss_data = read_files_into_array(date, 'loss_epoch', axis=0)
     fig1, ax1 = plt.subplots()
     ax1.set_title('Batch Losses')
     ax1.set_xlabel('Batches')
@@ -54,10 +56,18 @@ if __name__ == "__main__":
         y = loss_data[i]
         ax1.plot(x, y)
 
-    loss_data = read_files_into_array('2022-07-12_11_08_52', 'epoch_losses', seq=False, axis=0)
+    loss_data = read_files_into_array(date, 'epoch_losses', seq=False, axis=0)
     fig2, ax2 = plt.subplots()
     ax2.set_title('Epoch Losses')
     ax2.set_xlabel('Epochs')
     ax2.set_ylabel('NLL Loss')
     ax2.plot(np.arange(loss_data.shape[1]), loss_data.T)
+
+    loss_data = read_files_into_array(date, 'valid_losses', seq=False, axis=0)
+    fig3, ax3 = plt.subplots()
+    ax3.set_title('Epoch Losses')
+    ax3.set_xlabel('Epochs')
+    ax3.set_ylabel('NLL Loss')
+    ax3.plot(np.arange(loss_data.shape[1]), loss_data.T)
+
     plt.show()

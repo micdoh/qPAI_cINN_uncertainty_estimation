@@ -67,16 +67,11 @@ class WrappedModel(nn.Module):
 
     def get_condition(self, data):
         cond = self.cond_network(data).squeeze()
-        # cond_view = cond.view(cond.size(0), -1)
-        # TODO - Not sure which of view or squeeze is better to use... maybe either is ok
         return cond
 
     def forward(self, data, label):
         cond = self.get_condition(data)
         z, log_jac_det = self.inn(label, [cond])
-        # zz = sum(torch.sum(o ** 2, dim=1) for o in z)
-        # jac = self.inn.jacobian(run_forward=False)
-
         return z, log_jac_det
 
     def reverse_sample(self, data, z):
