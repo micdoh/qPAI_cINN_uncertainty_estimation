@@ -27,11 +27,12 @@ class CondNetwork(nn.Module):
             hidden_size=lstm_dim_out,  # No. of neurons in gate networks
             batch_first=True,
         )
-        self.linear = nn.Linear(in_features=lstm_dim_out, out_features=fcn_dim_out)
+        if c.use_fcn_layer:
+            self.linear = nn.Linear(in_features=lstm_dim_out, out_features=fcn_dim_out)
 
     def forward(self, x):
         out = self.lstm(x)[0]
-        out = self.linear(out)
+        out = self.linear(out) if c.use_fcn_layer else torch.reshape(out, (-1, 4100, 1))
         return out
 
 

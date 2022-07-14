@@ -25,7 +25,17 @@ if __name__ == "__main__":
     config_details_file = output_dir / f"{start_time}@test_config.txt"
     logger.info(config_string(config_details_file.resolve()))
 
-    model = WrappedModel()
+    if c.use_default_model:
+        model = WrappedModel()
+    else:
+        model = WrappedModel(
+            lstm_dim_in=c.lstm_input_dim,
+            lstm_dim_out=c.lstm_hidden,
+            fcn_dim_out=c.fcn_dim_out,
+            inn_dim_in=c.inn_input_dim,
+            cond_length=c.cond_length,
+            n_blocks=c.n_blocks,
+        )
     if c.use_cuda:
         model.cuda()
         # model = nn.DataParallel(model)
@@ -134,12 +144,14 @@ if __name__ == "__main__":
         save(model_abort_file.resolve(), optim, model)
         raise e
 
-    epoch_losses_file = output_dir / f"{start_time}@epoch_losses.npy"
-    with open(epoch_losses_file.resolve(), "wb") as f:
-        np.save(f, np.array([epoch_losses]))
+    finally:
 
-    valid_losses_file = output_dir / f"{start_time}@valid_losses.npy"
-    with open(valid_losses_file.resolve(), "wb") as f:
-        np.save(f, np.array([valid_losses]))
+        epoch_losses_file = output_dir / f"{start_time}@epoch_losses.npy"
+        with open(epoch_losses_file.resolve(), "wb") as f:
+            np.save(f, np.array([epoch_losses]))
 
-    logger.info("--- %s seconds ---" % (time.time() - start))
+        valid_losses_file = output_dir / f"{start_time}@valid_losses.npy"
+        with open(valid_losses_file.resolve(), "wb") as f:
+            np.save(f, np.array([valid_losses]))
+
+        logger.info("--- %s seconds ---" % (time.time() - start))

@@ -22,14 +22,18 @@ else:
     output_dir = Path(f"{path}\\output")
     log_dir = Path(f"{path}\\logs")
 
+use_default_model = False
 batch_size = 2048
 seq_length = 41
-n_features = 1
+fcn_dim_out = 1
 inn_input_dim = 2
+lstm_input_dim = 2
 lstm_hidden = 100
 inn_hidden = 192
 n_blocks = 16  # No. of invertible blocks in INN
 total_data_dims = 2  # TODO - Should this be 41 or 82 (after masking)? Or 2!
+use_fcn_layer = False
+cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length
 experiment_name = "FlowPhantom_insilico_complicated"
 allowed_datapoints = [10]
 load_date = "2022-07-12_11_08_52"
