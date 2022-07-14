@@ -81,7 +81,7 @@ class WrappedModel(nn.Module):
 
     def reverse_sample(self, data, z):
         cond = self.get_condition(data)
-        return self.inn(z, cond, rev=True)
+        return self.inn(z, [cond], rev=True, jac=False)
 
 
 def save(name, optim, model):
@@ -89,7 +89,7 @@ def save(name, optim, model):
 
 
 def load(filepath, model, optim):
-    state_dicts = torch.load(filepath)
+    state_dicts = torch.load(filepath, map_location=c.device)
     network_state_dict = {k: v for k, v in state_dicts['net'].items() if 'tmp_var' not in k}
     model.load_state_dict(network_state_dict)
     try:

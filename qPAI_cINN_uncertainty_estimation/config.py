@@ -27,19 +27,25 @@ seq_length = 41
 n_features = 1
 inn_input_dim = 2
 lstm_hidden = 100
-inn_hidden = 128
-n_blocks = 12  # No. of invertible blocks in INN
+inn_hidden = 192
+n_blocks = 16  # No. of invertible blocks in INN
 total_data_dims = 2  # TODO - Should this be 41 or 82 (after masking)? Or 2!
 experiment_name = "FlowPhantom_insilico_complicated"
 allowed_datapoints = [10]
 load_date = "2022-07-12_11_08_52"
 clip_gradients = True
+n_samples = 100  # Number of samples for inference
+sample_posterior = True  # Draw n_samples to find posterior, otherwise just sample at +/-1
+visualisation = False if use_cuda else True
+load_eval_data = False if use_cuda else True
+save_eval_data = True if use_cuda else False
+
 #######################
 #  Training schedule  #
 #######################
 eps = 1e-6
-n_epochs = 101
-checkpoint_save_interval = 20
+n_epochs = 501
+checkpoint_save_interval = 100
 adam_betas = (0.9, 0.95)
 weight_decay = 1e-5
 lr = 1e-3

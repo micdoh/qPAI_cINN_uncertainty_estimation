@@ -1,14 +1,18 @@
 import torch
 import tqdm
 import numpy as np
+import time
 from datetime import datetime
 import qPAI_cINN_uncertainty_estimation.config as c
 from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save
 from qPAI_cINN_uncertainty_estimation.data import prepare_dataloader
 from qPAI_cINN_uncertainty_estimation.init_log import init_logger
+from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 
 if __name__ == "__main__":
+
+    start = time.time()
 
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
 
@@ -18,17 +22,13 @@ if __name__ == "__main__":
     log_file = c.log_dir / f"training_{start_time}.log"
     logger = init_logger(log_file.resolve())
 
+    config_details_file = output_dir / f"{start_time}@test_config.txt"
+    logger.info(config_string(config_details_file.resolve()))
+
     model = WrappedModel()
     if c.use_cuda:
         model.cuda()
         # model = nn.DataParallel(model)
-
-    training_dataloader = prepare_dataloader(
-        c.data_path, c.experiment_name, "training", c.allowed_datapoints, c.batch_size
-    )
-    validation_dataloader = prepare_dataloader(
-        c.data_path, c.experiment_name, 'validation', c.allowed_datapoints, c.batch_size
-    )
 
     optim = torch.optim.Adam(
         model.params_trainable,
@@ -46,6 +46,14 @@ if __name__ == "__main__":
         valid_losses = []
 
         for i_epoch in range(c.n_epochs):
+
+            # N.B. initialising the dataloaders afresh with every epoch allows the masking to be re-performed
+            training_dataloader = prepare_dataloader(
+                c.data_path, c.experiment_name, "training", c.allowed_datapoints, c.batch_size
+            )
+            validation_dataloader = prepare_dataloader(
+                c.data_path, c.experiment_name, 'validation', c.allowed_datapoints, c.batch_size
+            )
 
             loss_history = []
 
@@ -67,6 +75,8 @@ if __name__ == "__main__":
                 nll = (
                     torch.mean(z**2) / 2 - torch.mean(log_jac_det) / c.total_data_dims
                 )
+                # TODO - Could implement bidirectional training as done here:
+                #  (https://github.com/VLL-HD/analyzing_inverse_problems/blob/master/inverse_problems_science/train.py)
                 # backpropagate and update the weights
                 nll.backward()
                 if c.clip_gradients:
@@ -133,3 +143,5 @@ if __name__ == "__main__":
     valid_losses_file = output_dir / f"{start_time}@valid_losses.npy"
     with open(valid_losses_file.resolve(), "wb") as f:
         np.save(f, np.array([valid_losses]))
+
+    logger.info("--- %s seconds ---" % (time.time() - start))

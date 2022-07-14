@@ -23,8 +23,10 @@ def spectrum_processing(spectrum, allowed_datapoints):
 
     incomplete_spectrum = list(np.multiply(a, np.array(spectrum)))
     non_zero_indices = np.nonzero(incomplete_spectrum)
-    non_zero_values = list(filter(None, incomplete_spectrum))
+    non_zero_values = [val for val in incomplete_spectrum if val]
     normalised_non_zero = spectrum_normalisation(non_zero_values)
+    # It appears that here, the normalisation occurs on the masked values,
+    # which is correct
 
     i = 0
     masking_features = [0] * len(
@@ -63,7 +65,7 @@ def reshape_and_float(tensor):
 def two_vector_float(tensor):
     return tensor.repeat(2).float()
 
-
+# TODO - Re-mask between epochs
 class MultiSpectralPressureO2Dataset(Dataset):
     def __init__(self, spectra, oxygenations, transform=None, target_transform=None):
         self.data = spectra
