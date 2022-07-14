@@ -134,6 +134,7 @@ if __name__ == "__main__":
             df.to_csv(df_file.resolve())
             config_details_file = output_dir / f"{start_time}@test_config.txt"
             logger.info(config_string(config_details_file.resolve()))
+            logger.info(f"Data saved to: {df_file.resolve()}")
 
     if c.visualisation:
 
