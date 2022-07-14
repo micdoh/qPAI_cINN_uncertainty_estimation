@@ -84,7 +84,7 @@ if __name__ == "__main__":
                     # Forward Pass
                     z, _ = model.reverse_sample(data, rev_inputs)
                     z = z.mean(dim=1)  # Take mean of the two features/estimates
-                    for i_pred, val in enumerate(z.detach().numpy()):
+                    for i_pred, val in enumerate(z.detach().cpu().numpy()):
                         z_samples[i_pred].append(val)
 
                 z_pred = np.array([np.mean(samples) for samples in z_samples])
