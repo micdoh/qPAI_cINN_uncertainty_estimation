@@ -16,7 +16,6 @@ if __name__ == "__main__":
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
 
     output_dir = c.output_dir / start_time
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     log_file = c.log_dir / f"{start_time}@test.log"
     logger = init_logger(log_file.resolve())
@@ -53,9 +52,6 @@ if __name__ == "__main__":
     load(saved_state_file.resolve(), model, optim)
 
     test_losses = []
-
-    config_details_file = output_dir / f"{start_time}@test_config.txt"
-    logger.info(config_string(config_details_file.resolve()))
 
     if c.load_eval_data:
         df_file = output_dir / f"{c.load_eval_data_date}@dataframe.csv"
@@ -108,7 +104,7 @@ if __name__ == "__main__":
                 stdev_lower = np.subtract(z_pred, z_stdev_lower)
                 stdev_upper = np.subtract(z_stdev_upper, z_pred)
 
-            label = label.mean(dim=1).detach().numpy()
+            label = label.mean(dim=1).detach().cpu().numpy()
 
             err = np.subtract(z_pred, label)
             errors = np.append(errors, err)
@@ -133,8 +129,11 @@ if __name__ == "__main__":
         df.sort_values(by=["labels"], ascending=False, inplace=True)
 
         if c.save_eval_data:
+            output_dir.mkdir(parents=True, exist_ok=True)
             df_file = output_dir / f"{start_time}@dataframe.csv"
             df.to_csv(df_file.resolve())
+            config_details_file = output_dir / f"{start_time}@test_config.txt"
+            logger.info(config_string(config_details_file.resolve()))
 
     if c.visualisation:
 
