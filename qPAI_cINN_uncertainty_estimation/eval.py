@@ -54,7 +54,7 @@ if __name__ == "__main__":
     test_losses = []
 
     if c.load_eval_data:
-        df_file = output_dir / f"{c.load_eval_data_date}@dataframe.csv"
+        df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         df = pd.read_csv(df_file.resolve())
 
     else:
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         ax.set_ylim(0, 1)
         ax.set_ylabel("sO2")
         ax.set_xlabel("Sample number")
-        x = np.arange(0, len(preds))
+        x = np.arange(0, len(df))
         y = df["preds"]
         ax.errorbar(
             x, y,
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                          f'{sampling_type}')
         err_ax.set_xlabel('sO2')
         err_ax.set_ylabel('Absolute error (prediction - ground truth)')
-        err_ax.scatter(np.arange(0, 1, 1/len(df)), errors, ms=1)
+        err_ax.scatter(np.arange(0, 1, 1/len(df)), df["errors"], s=1)
         err_fig.show()
 
         rel_err_fig, rel_err_ax = plt.subplots()
@@ -181,5 +181,5 @@ if __name__ == "__main__":
                              f'{sampling_type}')
         rel_err_ax.set_xlabel('sO2')
         rel_err_ax.set_ylabel('Relative error (Upper and lower stdevs)')
-        rel_err_ax.scatter(np.arange(0, 1, 1/len(df)), np.add(df["stdevs_lower"], df["stdevs_upper"]), ms=1)
+        rel_err_ax.scatter(np.arange(0, 1, 1/len(df)), np.add(df["stdevs_lower"], df["stdevs_upper"]), s=1)
         rel_err_fig.show()
