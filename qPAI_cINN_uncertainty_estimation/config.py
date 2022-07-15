@@ -44,6 +44,7 @@ sample_posterior = True  # Draw n_samples to find posterior, otherwise just samp
 visualisation = False if use_cuda else True
 load_eval_data = False if use_cuda else True
 save_eval_data = True if use_cuda else False
+load_eval_data_date = '2022-07-15_00_16_03'
 
 #######################
 #  Training schedule  #
