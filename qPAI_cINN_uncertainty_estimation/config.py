@@ -23,7 +23,7 @@ else:
     log_dir = Path(f"{path}\\logs")
 
 use_default_model = False
-batch_size = 2048
+batch_size = 1024
 seq_length = 41
 fcn_dim_out = 1
 inn_input_dim = 2
