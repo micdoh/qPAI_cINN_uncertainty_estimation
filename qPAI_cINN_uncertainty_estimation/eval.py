@@ -131,7 +131,6 @@ if __name__ == "__main__":
     test_losses = []
 
     calibration_error(test_dataloader, dir=output_dir)
-    exit
 
     if c.load_eval_data:
         df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"

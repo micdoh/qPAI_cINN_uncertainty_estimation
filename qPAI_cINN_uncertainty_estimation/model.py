@@ -15,6 +15,8 @@ def subnet(dims_in, dims_out):
         nn.LeakyReLU(),
         nn.Linear(c.inn_hidden, c.inn_hidden),
         nn.LeakyReLU(),
+        nn.Linear(c.inn_hidden, c.inn_hidden),
+        nn.LeakyReLU(),
         nn.Linear(c.inn_hidden, dims_out),
     )
 
