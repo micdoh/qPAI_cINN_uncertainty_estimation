@@ -82,6 +82,7 @@ def calibration_error(test_loader, dir=None):
     plt.xlabel('Confidence')
 
     if dir:
+        dir.mkdir(parents=True, exist_ok=True)
         file = dir / "calib_err_plot.png"
         plt.savefig(file.resolve())
 
