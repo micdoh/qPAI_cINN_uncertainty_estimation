@@ -32,7 +32,8 @@ class CondNetwork(nn.Module):
 
     def forward(self, x):
         out = self.lstm(x)[0]
-        out = self.linear(out) if c.use_fcn_layer else torch.reshape(out, (-1, 4100, 1))
+        out = self.linear(out) if c.use_fcn_layer else \
+            torch.reshape(out, (-1, c.seq_length*self.lstm.hidden_size))
         return out
 
 
@@ -67,8 +68,7 @@ class WrappedModel(nn.Module):
         return inn
 
     def get_condition(self, data):
-        cond = self.cond_network(data).squeeze()
-        return cond
+        return self.cond_network(data)
 
     def forward(self, data, label):
         cond = self.get_condition(data)

@@ -1,5 +1,5 @@
 import torch
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -9,6 +9,77 @@ from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save, load
 from qPAI_cINN_uncertainty_estimation.data import prepare_dataloader
 from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
+
+
+def concatenate_test_set(test_loader):
+    data_all, label_all = [], []
+
+    for x, y in test_loader:
+        data_all.append(x)
+        label_all.append(y)
+
+    return torch.cat(data_all, 0), torch.cat(label_all, 0)
+
+
+def sample_posterior(data, label):
+
+    outputs = []
+
+    rev_inputs = torch.randn_like(label)
+
+    for i in range(c.n_samples):
+        with torch.no_grad():
+            x_samples, _ = model.reverse_sample(data, rev_inputs)
+            x_samples = x_samples.mean(dim=1).unsqueeze(dim=1)
+        outputs.append(x_samples.data.cpu().numpy())
+
+    return outputs
+
+
+def calibration_error(test_loader):
+    # how many different confidences to look at
+    n_steps = 100
+
+    q_values = []
+    confidences = np.linspace(0., 1., n_steps + 1, endpoint=False)[1:]
+    uncert_intervals = [[] for i in range(n_steps)]
+    inliers = [[] for i in range(n_steps)]
+
+    for conf in confidences:
+        q_low = 0.5 * (1 - conf)
+        q_high = 0.5 * (1 + conf)
+        q_values += [q_low, q_high]
+
+    x_all, y_all = concatenate_test_set(test_loader)
+    for x, y in tqdm(zip(x_all, y_all), total=x_all.shape[0], disable=False):
+        x = torch.reshape(x, (1, -1, 2))
+        y = torch.reshape(y, (1, -1))
+        post = sample_posterior(x, y)
+        x_margins = list(np.quantile(post, q_values))
+
+        y = y.mean(dim=1).unsqueeze(dim=1)
+        for i in range(n_steps):
+            x_low, x_high = x_margins.pop(0), x_margins.pop(0)
+
+            uncert_intervals[i].append(x_high - x_low)
+            inliers[i].append(int(y < x_high and y > x_low))
+
+    inliers = np.mean(inliers, axis=1)
+    uncert_intervals = np.median(uncert_intervals, axis=1)
+    calib_err = inliers - confidences
+
+    print(F'Median calibration error:               {np.median(np.abs(calib_err))}')
+    print(F'Calibration error at 68% confidence:    {calib_err[68]}')
+    print(F'Med. est. uncertainty at 68% conf.:     {uncert_intervals[68]}')
+
+    plt.subplot(2, 1, 1)
+    plt.plot(confidences, calib_err)
+    plt.ylabel('Calibration error')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(confidences, uncert_intervals)
+    plt.ylabel('Median estimated uncertainty')
+    plt.xlabel('Confidence')
 
 
 if __name__ == "__main__":
@@ -53,6 +124,8 @@ if __name__ == "__main__":
 
     test_losses = []
 
+    calibration_error(test_dataloader); exit
+
     if c.load_eval_data:
         df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         df = pd.read_csv(df_file.resolve())
@@ -62,8 +135,7 @@ if __name__ == "__main__":
         labels = np.array([])
         preds = np.array([])
         errors = np.array([])
-        stdevs_lower = np.array([])
-        stdevs_upper = np.array([])
+        stdevs = np.array([])
 
         model.eval()  # Optional when not using Model Specific layer
         for i_val, (data, label) in enumerate(test_dataloader):
@@ -72,37 +144,44 @@ if __name__ == "__main__":
 
             if c.sample_posterior:
 
-                z_samples = [[] for _ in range(label.shape[0])]
-                for i_sample in range(c.n_samples):
-                    print(i_sample)
-                    # Define input for reverse pass
-                    rev_inputs = torch.randn_like(label)
-                    # Forward Pass
-                    z, _ = model.reverse_sample(data, rev_inputs)
-                    z = z.mean(dim=1)  # Take mean of the two features/estimates
-                    for i_pred, val in enumerate(z.detach().cpu().numpy()):
-                        z_samples[i_pred].append(val)
+                for i_mean in range(c.n_means):
 
-                z_pred = np.array([np.mean(samples) for samples in z_samples])
-                # TODO - is this the correct way to get the standard dev?
-                stdev_lower = stdev_upper = np.array([np.std(samples) for samples in z_samples])
+                    for i_sample in range(c.n_samples):
+                        # Define input for reverse pass
+                        rev_inputs = torch.randn_like(label)
+                        # Forward Pass
+                        with torch.no_grad():  # Is this necessary after model.eval()
+                            z, _ = model.reverse_sample(data, rev_inputs)
+
+                        z = z.mean(dim=1).unsqueeze(dim=1)  # Take mean of the two features/estimates
+                        z_samples = torch.cat((z_samples, z), dim=1) if i_sample != 0 else z
+
+                    z_mean = z_samples.mean(dim=1).unsqueeze(dim=1)
+                    z_means = torch.cat((z_means, z_mean), dim=1) if i_mean != 0 else z_mean
+
+                z_pred = z_means.mean(dim=1).detach().cpu().numpy()
+                z_stdev = z_means.std(dim=1, unbiased=True).detach().cpu().numpy()
+                #for samples in z_samples:
+                #    fig, ax = plt.subplots()
+                #    ax.set_title('Posterior Distribution of sO2 Values obtained from \n'
+                #                 'random sampling of Gaussian latent space')
+                #    ax.set_xlabel('sO2')
+                #    ax.set_ylabel('N Samples')
+                #    ax.hist(samples, np.arange(0, 1, 0.05))
+                #    fig.show()
 
             else:
                 # Sample with tensors (0,0) for mean, (-1,-1) for lower stdev, (1, 1) for upper stdev
                 mean_rev_inputs = torch.zeros_like(label)
-                z_pred, _ = model.reverse_sample(data, mean_rev_inputs)
+                stdev_rev_inputs = torch.ones_like(label)
 
-                stdev_lower_rev_inputs = torch.tensor([-1, -1]).repeat(label.shape[0], 1).float().to(c.device)
-                z_stdev_lower, _ = model.reverse_sample(data, stdev_lower_rev_inputs)
-
-                stdev_upper_rev_inputs = torch.ones_like(label)
-                z_stdev_upper, _ = model.reverse_sample(data, stdev_upper_rev_inputs)
+                with torch.no_grad():
+                    z_pred, _ = model.reverse_sample(data, mean_rev_inputs)
+                    z_stdev, _ = model.reverse_sample(data, stdev_rev_inputs)
 
                 z_pred = z_pred.mean(dim=1).detach().numpy()
-                z_stdev_lower = z_stdev_lower.mean(dim=1).detach().numpy()
-                z_stdev_upper = z_stdev_upper.mean(dim=1).detach().numpy()
-                stdev_lower = np.subtract(z_pred, z_stdev_lower)
-                stdev_upper = np.subtract(z_stdev_upper, z_pred)
+                z_stdev = z_stdev.mean(dim=1).detach().numpy()
+                stdev = np.subtract(z_stdev, z_pred)
 
             label = label.mean(dim=1).detach().cpu().numpy()
 
@@ -110,21 +189,13 @@ if __name__ == "__main__":
             errors = np.append(errors, err)
             labels = np.append(labels, label)
             preds = np.append(preds, z_pred)
-            stdevs_lower = np.append(stdevs_lower, stdev_lower)
-            stdevs_upper = np.append(stdevs_upper, stdev_upper)
-            print(i_val)
+            stdevs = np.append(stdevs, stdev)
 
-        #errors = np.mean(errors[:28800].reshape(-1, 100), axis=1)
-        #labels = np.mean(labels[:28800].reshape(-1, 100), axis=1)
-        #preds = np.mean(preds[:28800].reshape(-1, 100), axis=1)
-        #stdevs_lower = np.mean(stdevs_lower[:28800].reshape(-1, 100), axis=1)
-        #stdevs_upper = np.mean(stdevs_upper[:28800].reshape(-1, 100), axis=1)
-
+        # Load everything into a dataframe
         df = pd.DataFrame({"errors": errors,
                            "labels": labels,
                            "preds": preds,
-                           "stdevs_lower": stdevs_lower,
-                           "stdevs_upper": stdevs_upper,
+                           "stdevs": stdevs,
                            })
         df.sort_values(by=["labels"], ascending=False, inplace=True)
 
@@ -138,7 +209,6 @@ if __name__ == "__main__":
 
     if c.visualisation:
 
-        stdevs = np.vstack((df["stdevs_lower"], df["stdevs_upper"]))
         fig, ax = plt.subplots()
         fig.subplots_adjust(top=0.8)
         ax.set_xlim(0, len(df))
@@ -149,7 +219,7 @@ if __name__ == "__main__":
         y = df["preds"]
         ax.errorbar(
             x, y,
-            yerr=stdevs,
+            yerr=df["stdevs"],
             elinewidth=0.1,
             capsize=1,
             ecolor='r',
