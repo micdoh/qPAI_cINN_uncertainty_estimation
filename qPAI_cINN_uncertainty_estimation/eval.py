@@ -14,9 +14,8 @@ from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 def sample_posterior(data, label):
 
-    rev_inputs = torch.randn_like(label)
-
     for i in range(c.n_samples):
+        rev_inputs = torch.randn_like(label)
         with torch.no_grad():
             x_sample, _ = model.reverse_sample(data, rev_inputs)
             x_sample = x_sample.mean(dim=1).unsqueeze(dim=1)
