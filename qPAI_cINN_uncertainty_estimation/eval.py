@@ -54,6 +54,7 @@ def calibration_error(test_loader):
     for x, y in tqdm(zip(x_all, y_all), total=x_all.shape[0], disable=False):
         x = torch.reshape(x, (1, -1, 2))
         y = torch.reshape(y, (1, -1))
+        x, y = x.to(c.device), y.to(c.device)
         post = sample_posterior(x, y)
         x_margins = list(np.quantile(post, q_values))
 

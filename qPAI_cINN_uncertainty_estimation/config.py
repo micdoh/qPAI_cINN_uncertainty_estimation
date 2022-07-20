@@ -39,11 +39,11 @@ allowed_datapoints = [10]
 #load_date = "2022-07-12_11_08_52"  # Original, default model
 load_date = "2022-07-14_17_52_20"  # Larger model without FCN layer
 clip_gradients = True
-n_samples = 10  # Number of samples for inference
+n_samples = 1000  # Number of samples for inference
 n_means = 100  # Number of means to take for bootstrapping
 sample_posterior = True  # Draw n_samples to find posterior, otherwise just sample at +/-1
 visualisation = False if use_cuda else True
-load_eval_data = False #if use_cuda else True
+load_eval_data = False if use_cuda else True
 save_eval_data = True if use_cuda else False
 load_eval_data_date = '2022-07-15_00_16_03'
 
