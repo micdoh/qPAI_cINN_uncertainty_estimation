@@ -1,4 +1,5 @@
 import torch
+import pickle
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -11,32 +12,21 @@ from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 
-def concatenate_test_set(test_loader):
-    data_all, label_all = [], []
-
-    for x, y in test_loader:
-        data_all.append(x)
-        label_all.append(y)
-
-    return torch.cat(data_all, 0), torch.cat(label_all, 0)
-
-
 def sample_posterior(data, label):
-
-    outputs = []
 
     rev_inputs = torch.randn_like(label)
 
     for i in range(c.n_samples):
         with torch.no_grad():
-            x_samples, _ = model.reverse_sample(data, rev_inputs)
-            x_samples = x_samples.mean(dim=1).unsqueeze(dim=1)
-        outputs.append(x_samples.data.cpu().numpy())
+            x_sample, _ = model.reverse_sample(data, rev_inputs)
+            x_sample = x_sample.mean(dim=1).unsqueeze(dim=1)
 
-    return outputs
+        x_samples = torch.cat((x_samples, x_sample), dim=1) if i != 0 else x_sample
+
+    return x_samples
 
 
-def calibration_error(test_loader):
+def calibration_error(test_loader, dir=None):
     # how many different confidences to look at
     n_steps = 100
 
@@ -50,20 +40,29 @@ def calibration_error(test_loader):
         q_high = 0.5 * (1 + conf)
         q_values += [q_low, q_high]
 
-    x_all, y_all = concatenate_test_set(test_loader)
-    for x, y in tqdm(zip(x_all, y_all), total=x_all.shape[0], disable=False):
-        x = torch.reshape(x, (1, -1, 2))
-        y = torch.reshape(y, (1, -1))
+    for x, y in tqdm(iter(test_loader),
+                total=len(test_loader),
+                leave=True,
+                position=0,
+                mininterval=1.0,
+                ncols=83,):
+
         x, y = x.to(c.device), y.to(c.device)
-        post = sample_posterior(x, y)
-        x_margins = list(np.quantile(post, q_values))
 
+        posteriors = sample_posterior(x, y)
         y = y.mean(dim=1).unsqueeze(dim=1)
-        for i in range(n_steps):
-            x_low, x_high = x_margins.pop(0), x_margins.pop(0)
 
-            uncert_intervals[i].append(x_high - x_low)
-            inliers[i].append(int(y < x_high and y > x_low))
+        for post, g_truth in zip(posteriors, y):
+
+            post = post.data.cpu().numpy()
+            g_truth = g_truth.data.cpu().numpy()
+            x_margins = list(np.quantile(post, q_values))
+
+            for i in range(n_steps):
+                x_low, x_high = x_margins.pop(0), x_margins.pop(0)
+
+                uncert_intervals[i].append(x_high - x_low)
+                inliers[i].append(int(x_low < g_truth < x_high))
 
     inliers = np.mean(inliers, axis=1)
     uncert_intervals = np.median(uncert_intervals, axis=1)
@@ -81,6 +80,12 @@ def calibration_error(test_loader):
     plt.plot(confidences, uncert_intervals)
     plt.ylabel('Median estimated uncertainty')
     plt.xlabel('Confidence')
+
+    if dir:
+        file = dir / "calib_err_plot.png"
+        plt.savefig(file.resolve())
+
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -125,7 +130,8 @@ if __name__ == "__main__":
 
     test_losses = []
 
-    calibration_error(test_dataloader); exit
+    calibration_error(test_dataloader, dir=output_dir)
+    exit
 
     if c.load_eval_data:
         df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
