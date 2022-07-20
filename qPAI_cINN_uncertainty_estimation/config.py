@@ -30,7 +30,7 @@ inn_input_dim = 2
 lstm_input_dim = 2
 lstm_hidden = 100
 inn_hidden = 500
-n_blocks = 4  # No. of invertible blocks in INN
+n_blocks = 8  # No. of invertible blocks in INN
 total_data_dims = 2  # TODO - Should this be 41 or 82 (after masking)? Or 2!
 use_fcn_layer = False
 cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length
@@ -51,7 +51,7 @@ load_eval_data_date = '2022-07-15_00_16_03'
 #  Training schedule  #
 #######################
 eps = 1e-6
-n_epochs = 501
+n_epochs = 1001
 checkpoint_save_interval = 100
 adam_betas = (0.9, 0.95)
 weight_decay = 1e-5
