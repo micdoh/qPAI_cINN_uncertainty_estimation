@@ -22,7 +22,11 @@ def sample_posterior(data, label):
 
         x_samples = torch.cat((x_samples, x_sample), dim=1) if i != 0 else x_sample
 
-    return x_samples
+    rev_inputs = torch.zeros_like(label)
+    with torch.no_grad():
+        means, _ = model.reverse_sample(data, rev_inputs)
+
+    return x_samples, means
 
 
 def calibration_error(test_loader, dir=None):
@@ -33,6 +37,12 @@ def calibration_error(test_loader, dir=None):
     confidences = np.linspace(0., 1., n_steps + 1, endpoint=False)[1:]
     uncert_intervals = [[] for i in range(n_steps)]
     inliers = [[] for i in range(n_steps)]
+
+    labels = np.array([])
+    mean_pred = np.array([])
+    median_pred = np.array([])
+    iqr_upper = np.array([])
+    iqr_lower = np.array([])
 
     for conf in confidences:
         q_low = 0.5 * (1 - conf)
@@ -48,13 +58,17 @@ def calibration_error(test_loader, dir=None):
 
         x, y = x.to(c.device), y.to(c.device)
 
-        posteriors = sample_posterior(x, y)
-        y = y.mean(dim=1).unsqueeze(dim=1)
+        posteriors, means = sample_posterior(x, y)
+        means = means.mean(dim=1).unsqueeze(dim=1)
+        g_truths = y.mean(dim=1).unsqueeze(dim=1)
 
-        for post, g_truth in zip(posteriors, y):
+        for post, g_truth, mean in zip(posteriors, g_truths, means):
 
             post = post.data.cpu().numpy()
             g_truth = g_truth.data.cpu().numpy()
+            median = np.median(post)
+            iqr_upper, iqr_lower = np.percentile(post, [75, 25])
+            iqr = iqr_upper - iqr_lower
             x_margins = list(np.quantile(post, q_values))
 
             for i in range(n_steps):
@@ -62,6 +76,18 @@ def calibration_error(test_loader, dir=None):
 
                 uncert_intervals[i].append(x_high - x_low)
                 inliers[i].append(int(x_low < g_truth < x_high))
+                
+            labels = np.append(labels, g_truth)
+            mean_pred = np.append(mean_pred, mean)
+            median_pred = np.append(median_pred, median)
+            iqr_uppers = np.append(iqr_uppers, iqr_upper)
+            iqr_lowers = np.append(iqr_lowers, iqr_lower)
+            
+    abs_errs_mean = mean_pred - labels
+    rel_errs_mean = abs_errs_mean / labels
+    abs_errs_median = median_pred - labels
+    rel_errs_median = abs_errs_median / labels
+    iqrs = iqr_uppers - iqr_lowers
 
     inliers = np.mean(inliers, axis=1)
     uncert_intervals = np.median(uncert_intervals, axis=1)
@@ -86,6 +112,22 @@ def calibration_error(test_loader, dir=None):
         plt.savefig(file.resolve())
 
     plt.show()
+
+    # Load everything into a dataframe
+    df = pd.DataFrame({"mean_pred": mean_pred,
+                       "median_pred": median_pred,
+                       "g_truth": labels,
+                       "iqr_upper": iqr_uppers,
+                       "iqr_lower": iqr_lowers,
+                       "iqr": iqrs,
+                       "abs_err_mean": abs_errs_mean,
+                       "rel_err_mean": rel_errs_mean,
+                       "abs_err_median": abs_errs_median,
+                       "rel_err_median": rel_errs_median,
+                       })
+    df.sort_values(by=["labels"], ascending=False, inplace=True)
+
+    return df
 
 
 if __name__ == "__main__":
@@ -130,8 +172,6 @@ if __name__ == "__main__":
 
     test_losses = []
 
-    calibration_error(test_dataloader, dir=output_dir)
-
     if c.load_eval_data:
         df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         df = pd.read_csv(df_file.resolve())
@@ -140,10 +180,15 @@ if __name__ == "__main__":
 
         labels = np.array([])
         preds = np.array([])
-        errors = np.array([])
-        stdevs = np.array([])
+        rel_err = np.array([])
+        abs_err = np.array([])
+        iqr_upper = np.array([])
+        iqr_lower = np.array([])
 
         model.eval()  # Optional when not using Model Specific layer
+
+        df = calibration_error(test_dataloader, dir=output_dir)
+
         for i_val, (data, label) in enumerate(test_dataloader):
             # Transfer Data to GPU if available
             data, label = data.to(c.device), label.to(c.device)
@@ -192,6 +237,7 @@ if __name__ == "__main__":
             label = label.mean(dim=1).detach().cpu().numpy()
 
             err = np.subtract(z_pred, label)
+
             errors = np.append(errors, err)
             labels = np.append(labels, label)
             preds = np.append(preds, z_pred)

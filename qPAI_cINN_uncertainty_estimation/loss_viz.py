@@ -37,8 +37,10 @@ def read_files_into_array(date: str, name: str, suffix: str = '.npy', seq: bool 
 
 
 if __name__ == "__main__":
-    #date = '2022-07-12_11_08_52'
-    date = '2022-07-14_17_52_20'
+    #date = '2022-07-12_11_08_52'  # Initial model
+    #date = '2022-07-14_17_52_20'  # Larger model
+    #date = '2022-07-20_17_16_01'  # Wider model, less blocks, no FCN
+    date = '2022-07-21_09_39_35'  # Wider model, less blocks, with FCN
 
     loss_data = read_files_into_array(date, 'loss_epoch', axis=1)
     fig, ax = plt.subplots()

@@ -65,7 +65,7 @@ def reshape_and_float(tensor):
 def two_vector_float(tensor):
     return tensor.repeat(2).float()
 
-# TODO - Re-mask between epochs
+
 class MultiSpectralPressureO2Dataset(Dataset):
     def __init__(self, spectra, oxygenations, transform=None, target_transform=None):
         self.data = spectra
