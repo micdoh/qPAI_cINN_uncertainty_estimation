@@ -189,68 +189,6 @@ if __name__ == "__main__":
 
         df = calibration_error(test_dataloader, dir=output_dir)
 
-        for i_val, (data, label) in enumerate(test_dataloader):
-            # Transfer Data to GPU if available
-            data, label = data.to(c.device), label.to(c.device)
-
-            if c.sample_posterior:
-
-                for i_mean in range(c.n_means):
-
-                    for i_sample in range(c.n_samples):
-                        # Define input for reverse pass
-                        rev_inputs = torch.randn_like(label)
-                        # Forward Pass
-                        with torch.no_grad():  # Is this necessary after model.eval()
-                            z, _ = model.reverse_sample(data, rev_inputs)
-
-                        z = z.mean(dim=1).unsqueeze(dim=1)  # Take mean of the two features/estimates
-                        z_samples = torch.cat((z_samples, z), dim=1) if i_sample != 0 else z
-
-                    z_mean = z_samples.mean(dim=1).unsqueeze(dim=1)
-                    z_means = torch.cat((z_means, z_mean), dim=1) if i_mean != 0 else z_mean
-
-                z_pred = z_means.mean(dim=1).detach().cpu().numpy()
-                z_stdev = z_means.std(dim=1, unbiased=True).detach().cpu().numpy()
-                #for samples in z_samples:
-                #    fig, ax = plt.subplots()
-                #    ax.set_title('Posterior Distribution of sO2 Values obtained from \n'
-                #                 'random sampling of Gaussian latent space')
-                #    ax.set_xlabel('sO2')
-                #    ax.set_ylabel('N Samples')
-                #    ax.hist(samples, np.arange(0, 1, 0.05))
-                #    fig.show()
-
-            else:
-                # Sample with tensors (0,0) for mean, (-1,-1) for lower stdev, (1, 1) for upper stdev
-                mean_rev_inputs = torch.zeros_like(label)
-                stdev_rev_inputs = torch.ones_like(label)
-
-                with torch.no_grad():
-                    z_pred, _ = model.reverse_sample(data, mean_rev_inputs)
-                    z_stdev, _ = model.reverse_sample(data, stdev_rev_inputs)
-
-                z_pred = z_pred.mean(dim=1).detach().numpy()
-                z_stdev = z_stdev.mean(dim=1).detach().numpy()
-                stdev = np.subtract(z_stdev, z_pred)
-
-            label = label.mean(dim=1).detach().cpu().numpy()
-
-            err = np.subtract(z_pred, label)
-
-            errors = np.append(errors, err)
-            labels = np.append(labels, label)
-            preds = np.append(preds, z_pred)
-            stdevs = np.append(stdevs, stdev)
-
-        # Load everything into a dataframe
-        df = pd.DataFrame({"errors": errors,
-                           "labels": labels,
-                           "preds": preds,
-                           "stdevs": stdevs,
-                           })
-        df.sort_values(by=["labels"], ascending=False, inplace=True)
-
         if c.save_eval_data:
             output_dir.mkdir(parents=True, exist_ok=True)
             df_file = output_dir / f"{start_time}@dataframe.csv"
