@@ -35,7 +35,7 @@ class CondNetwork(nn.Module):
     def forward(self, x):
         out = self.lstm(x)[0]
         out = self.linear(out) if c.use_fcn_layer else \
-            torch.reshape(out, (-1, c.seq_length*self.lstm.hidden_size))
+            torch.reshape(out, (-1, c.cond_length))
         return out
 
 
