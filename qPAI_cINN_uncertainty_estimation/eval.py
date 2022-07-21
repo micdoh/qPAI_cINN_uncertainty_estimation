@@ -41,8 +41,8 @@ def calibration_error(test_loader, dir=None):
     labels = np.array([])
     mean_pred = np.array([])
     median_pred = np.array([])
-    iqr_upper = np.array([])
-    iqr_lower = np.array([])
+    iqr_uppers = np.array([])
+    iqr_lowers = np.array([])
 
     for conf in confidences:
         q_low = 0.5 * (1 - conf)
@@ -68,7 +68,6 @@ def calibration_error(test_loader, dir=None):
             g_truth = g_truth.data.cpu().numpy()
             median = np.median(post)
             iqr_upper, iqr_lower = np.percentile(post, [75, 25])
-            iqr = iqr_upper - iqr_lower
             x_margins = list(np.quantile(post, q_values))
 
             for i in range(n_steps):
