@@ -125,7 +125,7 @@ def calibration_error(test_loader, dir=None):
                        "abs_err_median": abs_errs_median,
                        "rel_err_median": rel_errs_median,
                        })
-    df.sort_values(by=["labels"], ascending=False, inplace=True)
+    df.sort_values(by=["g_truth"], ascending=False, inplace=True)
 
     return df
 
