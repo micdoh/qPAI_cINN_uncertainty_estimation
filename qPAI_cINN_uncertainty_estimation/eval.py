@@ -66,6 +66,7 @@ def calibration_error(test_loader, dir=None):
 
             post = post.data.cpu().numpy()
             g_truth = g_truth.data.cpu().numpy()
+            mean = mean.data.cpu().numpy()
             median = np.median(post)
             iqr_upper, iqr_lower = np.percentile(post, [75, 25])
             x_margins = list(np.quantile(post, q_values))
