@@ -93,25 +93,11 @@ def calibration_error(test_loader, dir=None):
     uncert_intervals = np.median(uncert_intervals, axis=1)
     calib_err = inliers - confidences
 
-    print(F'Median calibration error:               {np.median(np.abs(calib_err))}')
-    print(F'Calibration error at 68% confidence:    {calib_err[68]}')
-    print(F'Med. est. uncertainty at 68% conf.:     {uncert_intervals[68]}')
-
-    plt.subplot(2, 1, 1)
-    plt.plot(confidences, calib_err)
-    plt.ylabel('Calibration error')
-
-    plt.subplot(2, 1, 2)
-    plt.plot(confidences, uncert_intervals)
-    plt.ylabel('Median estimated uncertainty')
-    plt.xlabel('Confidence')
-
     if dir:
         dir.mkdir(parents=True, exist_ok=True)
         file = dir / "calib_err_plot.png"
         plt.savefig(file.resolve())
 
-    plt.show()
     calib_df = pd.DataFrame({"confidence": confidences,
                              "uncert_interval": uncert_intervals,
                              "inliers": inliers,
@@ -213,6 +199,7 @@ if __name__ == "__main__":
         mean_ax.set_xlabel("Ground truth sO2 (%)")
         x = df["g_truth"]*100
         y = df["mean_pred"]*100
+        mean_ax.plot(np.arange(0, 100), np.arange(0, 100), color='k', linestyle='-', linewidth=2, zorder=100)
         mean_ax.errorbar(
             x, y,
             yerr=get_relative_iqrs('mean_pred')*100,
@@ -226,7 +213,6 @@ if __name__ == "__main__":
             fmt='o'
         )
         mean_ax.set_title(f"Mean sO2 predictions of cINN based on 1000 samples")
-        mean_ax.plot([0, 0], [100, 100], color='k', linestyle='-', linewidth=2, zorder=100)
         mean_fig.show()
 
         median_fig, median_ax = plt.subplots()
@@ -237,6 +223,7 @@ if __name__ == "__main__":
         median_ax.set_xlabel("Ground truth sO2 (%)")
         x = df["g_truth"]*100
         y = df["median_pred"]*100
+        median_ax.plot(np.arange(0,100), np.arange(0,100), color='k', linestyle='-', linewidth=2, zorder=100)
         median_ax.errorbar(
             x, y,
             yerr=get_relative_iqrs('median_pred')*100,
@@ -251,7 +238,6 @@ if __name__ == "__main__":
             zorder=2
         )
         median_ax.set_title(f"Median sO2 predictions of cINN based on 1000 samples")
-        median_ax.plot([0, 0], [100, 100], color='k', linestyle='-', linewidth=2, zorder=100)
         median_fig.show()
 
         abs_err_fig, abs_err_ax = plt.subplots()
@@ -282,5 +268,28 @@ if __name__ == "__main__":
         pred_diff_ax.set_ylabel('Median - Mean (%)')
         pred_diff_ax.scatter(df["g_truth"]*100, df["mean_pred"]*100-df["median_pred"]*100, s=1, label="Median prediction")
         pred_diff_fig.show()
+
+        plt.subplot(2, 1, 1)
+        plt.plot(calib_df['confidence'], calib_df['calib_err'])
+        plt.ylabel('Calibration error')
+        plt.subplot(2, 1, 2)
+        plt.plot(calib_df['confidence'], calib_df['uncert_interval'])
+        plt.ylabel('Median estimated uncertainty')
+        plt.xlabel('Confidence')
+        plt.show()
+
+        print(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
+        print(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
+        print(F'Med. est. uncertainty at 68% conf.:     {calib_df["uncert_interval"][68]*100:.1f}%')
+
+        #ranks = df.rank(pct=True)
+        #close_to_median = abs(ranks - 0.5)
+        #idx = close_to_median.idxmin()['rel_err_median']
+        #med = df['rel_err_median'][idx]
+        #median_err = np.abs(df['rel_err_median'].median()*100)
+        iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75])*100
+        #median_iqr_upper = df['iqr_upper'][idx]
+        #median_iqr_lower = df['iqr_lower'][idx]
+        print(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
 
 
