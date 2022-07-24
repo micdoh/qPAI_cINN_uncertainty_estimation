@@ -54,8 +54,12 @@ if __name__ == "__main__":
 
         epoch_losses = []
         valid_losses = []
+        i_epoch = 0
+        no_improvement_epochs = 0
 
-        for i_epoch in range(c.n_epochs):
+        while True:
+
+            i_epoch += 1
 
             # N.B. initialising the dataloaders afresh with every epoch allows the masking to be re-performed
             training_dataloader = prepare_dataloader(
@@ -134,17 +138,24 @@ if __name__ == "__main__":
                 min_valid_loss = valid_loss
                 model_file = output_dir / f"{start_time}@cinn.pt"
                 save(model_file.resolve(), optim, model)
+                no_improvement_epochs = 0
+            else:
+                no_improvement_epochs += 1
 
             valid_losses.append(valid_loss)
 
             weight_scheduler.step()
+
+            # End training
+            if no_improvement_epochs > c.no_improvement_epoch_cutoff or i_epoch > c.max_epochs:
+                break
 
     except Exception as e:
         model_abort_file = output_dir / f"{start_time}@cinn_ABORT.pt"
         save(model_abort_file.resolve(), optim, model)
         raise e
 
-    finally:
+    finally:  # Always save loss data
 
         epoch_losses_file = output_dir / f"{start_time}@epoch_losses.npy"
         with open(epoch_losses_file.resolve(), "wb") as f:
