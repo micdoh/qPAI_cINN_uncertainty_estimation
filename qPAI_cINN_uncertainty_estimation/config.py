@@ -30,12 +30,13 @@ inn_input_dim = 2
 lstm_input_dim = 2
 lstm_hidden = 100
 inn_hidden = 500
+inn_subnet_layers = 1
 n_blocks = 8  # No. of invertible blocks in INN
 total_data_dims = 2  # Size of input/output data (not condition)
-use_fcn_layer = False
+use_fcn_layer = True
 cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_dim_out
 experiment_name = "FlowPhantom_insilico_complicated"
-allowed_datapoints = [40]#[10]
+allowed_datapoints = [40]
 #load_date = "2022-07-12_11_08_52"  # Original, default model, 10 wavelengths train
 #load_date = "2022-07-14_17_52_20"  # Larger model without FCN layer, 10 wavelengths train
 load_date = "2022-07-21_09_39_35" # Wider model, less blocks, with FCN, 10 wavelengths train
@@ -63,4 +64,8 @@ weight_decay = 1e-5
 lr = 1e-3
 decay_by = 0.01
 gamma = decay_by ** (1.0 / n_epochs)
+
+
+def model_id():
+    """FCN yes/no, blocks, inn_hidden, inn_nlayers, """
 

@@ -10,12 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 def subnet(dims_in, dims_out):
+    layers = []
+    for i in range(0, c.inn_subnet_layers):
+        layers.append(nn.LeakyReLU())
+        layers.append(nn.Linear(c.inn_hidden, c.inn_hidden))
     return nn.Sequential(
         nn.Linear(dims_in, c.inn_hidden),
-        nn.LeakyReLU(),
-        nn.Linear(c.inn_hidden, c.inn_hidden),
-        nn.LeakyReLU(),
-        nn.Linear(c.inn_hidden, c.inn_hidden),
+        *layers,
         nn.LeakyReLU(),
         nn.Linear(c.inn_hidden, dims_out),
     )
