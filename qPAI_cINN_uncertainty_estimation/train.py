@@ -165,4 +165,6 @@ if __name__ == "__main__":
         with open(valid_losses_file.resolve(), "wb") as f:
             np.save(f, np.array([valid_losses]))
 
+        logger.info(f"\n--- Min. validation loss = {min_valid_loss:.4f} ---\n")
+
         logger.info("--- %s seconds ---" % (time.time() - start))
