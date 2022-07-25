@@ -39,7 +39,8 @@ experiment_name = "FlowPhantom_insilico_complicated"
 allowed_datapoints = [40]
 #load_date = "2022-07-12_11_08_52"  # Original, default model, 10 wavelengths train
 #load_date = "2022-07-14_17_52_20"  # Larger model without FCN layer, 10 wavelengths train
-load_date = "2022-07-21_09_39_35" # Wider model, less blocks, with FCN, 10 wavelengths train
+#load_date = "2022-07-21_09_39_35" # Wider model, less blocks, with FCN, 10 wavelengths train
+load_date = "2022-07-24_21_29_34"  # Wider model, less blocks, without FCN, 40 wavelengths train
 clip_gradients = True
 n_samples = 1000  # Number of samples for inference
 sample_posterior = True  # Draw n_samples to find posterior, otherwise just sample at +/-1
@@ -47,8 +48,9 @@ visualisation = False if use_cuda else True
 load_eval_data = False if use_cuda else True
 save_eval_data = True if use_cuda else False
 #load_eval_data_date = '2022-07-15_00_16_03'  # Larger model without FCN layer, 10 wavelengths eval
-load_eval_data_date = "2022-07-22_15_51_40"  # Wide model, less blocks, with FCN, 10 wavelengths eval
-#load_eval_data_date = '2022-07-24_18_14_43'  # Wide model, less blocks, with FCN, 40 wavelengths eval
+#load_eval_data_date = "2022-07-22_15_51_40"  # Wide model, less blocks, with FCN, 10 wavelengths eval
+#load_eval_data_date = '2022-07-24_18_14_43'  # Wide model, less blocks, with FCN, 10 wavelengths train, 40 wavelengths eval
+load_eval_data_date = ''  # Wide model, less blocks, without FCN, 40 wavelengths train and eval
 
 
 #######################
