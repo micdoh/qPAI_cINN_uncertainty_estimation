@@ -265,7 +265,7 @@ if __name__ == "__main__":
         pred_diff_ax.set_xlim(0, 100)
         pred_diff_ax.set_title('Difference between Mean/Median')
         pred_diff_ax.set_xlabel('Ground truth sO2 (%)')
-        pred_diff_ax.set_ylabel('Median - Mean (%)')
+        pred_diff_ax.set_ylabel('Mean - Median (%)')
         pred_diff_ax.scatter(df["g_truth"]*100, df["mean_pred"]*100-df["median_pred"]*100, s=1, label="Median prediction")
         pred_diff_fig.show()
 
@@ -277,6 +277,17 @@ if __name__ == "__main__":
         plt.ylabel('Median estimated uncertainty')
         plt.xlabel('Confidence')
         plt.show()
+        
+        calib_fig, calib_ax = plt.subplots()
+        calib_ax.set_xlim(0, 100)
+        calib_ax.set_ylim(0, 100)
+        calib_ax.set_title('cINN Calibration Curve')
+        calib_ax.set_xlabel('Confidence interval (%)')
+        calib_ax.set_ylabel('Ground truth inliers in interval (%)')
+        calib_ax.plot(calib_df['confidence']*100, calib_df['inliers']*100, label="Calibration curve")
+        calib_ax.plot(calib_df['confidence'] * 100, calib_df['confidence'] * 100, color='green', linestyle='--', label="Optimal")
+        calib_ax.legend()
+        calib_fig.show()
 
         print(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
         print(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
