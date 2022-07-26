@@ -37,6 +37,7 @@ if __name__ == "__main__":
     if c.load_for_training:
         saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
         load(saved_state_file.resolve(), model, optim)
+        optim.param_groups[0]['capturable'] = True
         start_time = c.load_date
 
     else:
@@ -166,7 +167,7 @@ if __name__ == "__main__":
 
         save_losses('epoch_losses', epoch_losses, output_dir, start_time)
 
-        save_losses('valid_losses', epoch_losses, output_dir, start_time)
+        save_losses('valid_losses', valid_losses, output_dir, start_time)
 
         logger.info(f"\n--- Min. validation loss = {min_valid_loss:.4f} ---\n")
 
