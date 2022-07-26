@@ -24,7 +24,6 @@ else:
     log_dir = Path(f"{path}\\logs")
 
 use_default_model = False
-batch_size = 1024
 seq_length = 41
 fcn_dim_out = 1
 inn_input_dim = 2
@@ -36,38 +35,45 @@ n_blocks = 8  # No. of invertible blocks in INN
 total_data_dims = 2  # Size of input/output data (not condition)
 use_fcn_layer = False
 cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_dim_out
+
 experiment_name = "FlowPhantom_insilico_complicated"
-allowed_datapoints = [10]
+allowed_datapoints = np.arange(3, 42)#[10]
+
+n_samples = 1000  # Number of samples for inference
+
+visualisation = False if use_cuda else True
+load_eval_data = False if use_cuda else True
+save_eval_data = True if use_cuda else False
+
 #load_date = "2022-07-12_11_08_52"  # Original, default model, 10 wavelengths train
 #load_date = "2022-07-14_17_52_20"  # Larger model without FCN layer, 10 wavelengths train
 #load_date = "2022-07-21_09_39_35" # Wider model, less blocks, with FCN, 10 wavelengths train
 #load_date = "2022-07-24_21_29_34"  # Wider model, less blocks, without FCN, 40 wavelengths train
 load_date = '2022-07-25_16_13_12'  # Wider model, less blocks, without FCN, flexi-train
-clip_gradients = True
-n_samples = 1000  # Number of samples for inference
-sample_posterior = True  # Draw n_samples to find posterior, otherwise just sample at +/-1
-visualisation = False if use_cuda else True
-load_eval_data = False if use_cuda else True
-save_eval_data = True if use_cuda else False
+
 #load_eval_data_date = '2022-07-15_00_16_03'  # Larger model without FCN layer, 10 wavelengths eval
 #load_eval_data_date = "2022-07-22_15_51_40"  # Wide model, less blocks, with FCN, 10 wavelengths eval
 #load_eval_data_date = '2022-07-24_18_14_43'  # Wide model, less blocks, with FCN, 10 wavelengths train, 40 wavelengths eval
 #load_eval_data_date = '2022-07-25_15_15_11'  # Wide model, less blocks, without FCN, 40 wavelengths train and eval
-load_eval_data_date = '2022-07-25_15_32_04'  # Wide model, less blocks, without FCN, 40 wavelengths train, 10 eval
+#load_eval_data_date = '2022-07-25_15_32_04'  # Wide model, less blocks, without FCN, 40 wavelengths train, 10 eval
+load_eval_data_date = '2022-07-26_14_45_48'  # Flexi, 10 eval
+load_for_training = True
 
 #######################
 #  Training schedule  #
 #######################
+batch_size = 1024
 eps = 1e-6
-n_epochs = 1000
+min_epochs = 900
 max_epochs = 2500
 checkpoint_save_interval = 2501
-no_improvement_epoch_cutoff = 80
+no_improvement_epoch_cutoff = 100
 adam_betas = (0.9, 0.95)
 weight_decay = 1e-5
 lr = 1e-3
 decay_by = 0.01
-gamma = decay_by ** (1.0 / n_epochs)
+gamma = decay_by ** (1.0 / min_epochs)
+clip_gradients = True
 
 
 def model_id():

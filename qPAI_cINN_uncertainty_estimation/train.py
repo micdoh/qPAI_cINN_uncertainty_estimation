@@ -2,19 +2,47 @@ import torch
 import tqdm
 import numpy as np
 import time
+import glob
 from datetime import datetime
 import qPAI_cINN_uncertainty_estimation.config as c
-from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save
+from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save, load, init_model
 from qPAI_cINN_uncertainty_estimation.data import prepare_dataloader
 from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 
+def save_losses(loss_type: str, losses: list, output_dir, start_time):
+    losses_file = output_dir / f"{start_time}@{loss_type}.npy"
+    losses = np.array([losses])
+    if c.load_for_training:
+        with open(losses_file.resolve(), "rb") as f:
+            prev_losses = np.load(f)
+            losses = np.concatenate((prev_losses, losses), axis=0)
+    with open(losses_file.resolve(), "wb") as f:
+        np.save(f, losses)
+
+
+def get_last_epoch(output_dir):
+    file_search = output_dir / '*@loss_epoch*.npy'
+    files = glob.glob(str(file_search))
+    epoch_indices = [int(file.split('_')[-1].split('.')[0]) for file in files]
+    epoch_indices.sort()
+    return epoch_indices[-1]
+
+
 if __name__ == "__main__":
 
-    start = time.time()
+    model, optim, weight_scheduler = init_model()
 
-    start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+    if c.load_for_training:
+        saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
+        load(saved_state_file.resolve(), model, optim)
+        start_time = c.load_date
+
+    else:
+        start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+
+    start = time.time()
 
     output_dir = c.output_dir / start_time
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -25,36 +53,13 @@ if __name__ == "__main__":
     config_details_file = output_dir / f"{start_time}@test_config.txt"
     logger.info(config_string(config_details_file.resolve()))
 
-    if c.use_default_model:
-        model = WrappedModel()
-    else:
-        model = WrappedModel(
-            lstm_dim_in=c.lstm_input_dim,
-            lstm_dim_out=c.lstm_hidden,
-            fcn_dim_out=c.fcn_dim_out,
-            inn_dim_in=c.inn_input_dim,
-            cond_length=c.cond_length,
-            n_blocks=c.n_blocks,
-        )
-    if c.use_cuda:
-        model.cuda()
-        # model = nn.DataParallel(model)
-
-    optim = torch.optim.Adam(
-        model.params_trainable,
-        lr=c.lr,
-        betas=c.adam_betas,
-        eps=c.eps,
-        weight_decay=c.weight_decay,
-    )
-    weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=c.gamma)
     min_valid_loss = np.inf
 
     try:
 
         epoch_losses = []
         valid_losses = []
-        i_epoch = 0
+        i_epoch = get_last_epoch(output_dir) if c.load_for_training else 0
         no_improvement_epochs = 0
 
         while True:
@@ -147,7 +152,9 @@ if __name__ == "__main__":
             weight_scheduler.step()
 
             # End training
-            if no_improvement_epochs > c.no_improvement_epoch_cutoff or i_epoch > c.max_epochs:
+            if (no_improvement_epochs > c.no_improvement_epoch_cutoff
+                or i_epoch > c.max_epochs) \
+                    and i_epoch > c.min_epochs :
                 break
 
     except Exception as e:
@@ -157,13 +164,9 @@ if __name__ == "__main__":
 
     finally:  # Always save loss data
 
-        epoch_losses_file = output_dir / f"{start_time}@epoch_losses.npy"
-        with open(epoch_losses_file.resolve(), "wb") as f:
-            np.save(f, np.array([epoch_losses]))
+        save_losses('epoch_losses', epoch_losses, output_dir, start_time)
 
-        valid_losses_file = output_dir / f"{start_time}@valid_losses.npy"
-        with open(valid_losses_file.resolve(), "wb") as f:
-            np.save(f, np.array([valid_losses]))
+        save_losses('valid_losses', epoch_losses, output_dir, start_time)
 
         logger.info(f"\n--- Min. validation loss = {min_valid_loss:.4f} ---\n")
 

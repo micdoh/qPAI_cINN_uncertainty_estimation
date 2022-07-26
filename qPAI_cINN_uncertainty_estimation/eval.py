@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
 import qPAI_cINN_uncertainty_estimation.config as c
-from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save, load
+from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save, load, init_model
 from qPAI_cINN_uncertainty_estimation.data import prepare_dataloader
 from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
@@ -134,28 +134,7 @@ if __name__ == "__main__":
         c.data_path, c.experiment_name, 'test', c.allowed_datapoints, c.batch_size
     )
 
-    if c.use_default_model:
-        model = WrappedModel()
-    else:
-        model = WrappedModel(
-            lstm_dim_in=c.lstm_input_dim,
-            lstm_dim_out=c.lstm_hidden,
-            fcn_dim_out=c.fcn_dim_out,
-            inn_dim_in=c.inn_input_dim,
-            cond_length=c.cond_length,
-            n_blocks=c.n_blocks,
-        )
-
-    if c.use_cuda:
-        model.cuda()
-    optim = torch.optim.Adam(
-        model.params_trainable,
-        lr=c.lr,
-        betas=c.adam_betas,
-        eps=c.eps,
-        weight_decay=c.weight_decay,
-    )
-    weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=c.gamma)
+    model, optim, weight_scheduler = init_model()
 
     saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
 

@@ -42,6 +42,7 @@ if __name__ == "__main__":
     #date = '2022-07-20_17_16_01'  # Wider model, less blocks, no FCN, 10 wavelengths
     #date = '2022-07-21_09_39_35'  # Wider model, less blocks, with FCN, 10 wavelengths
     date = '2022-07-24_21_29_34'  # Wider model, less blocks, with FCN, 40 wavelengths
+    date = '2022-07-25_16_13_12'  # Wider model, less blocks, without FCN, flexi-train
 
     loss_data = read_files_into_array(date, 'loss_epoch', axis=1)
     fig, ax = plt.subplots()
