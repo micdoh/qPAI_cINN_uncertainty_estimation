@@ -37,7 +37,7 @@ use_fcn_layer = False
 cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_dim_out
 
 experiment_name = "FlowPhantom_insilico_complicated"
-allowed_datapoints = np.arange(3, 42)#[10]
+allowed_datapoints = [40]
 
 n_samples = 1000  # Number of samples for inference
 
@@ -66,7 +66,7 @@ batch_size = 1024
 eps = 1e-6
 min_epochs = 900
 max_epochs = 2500
-checkpoint_save_interval = 2501
+checkpoint_save_interval = max_epochs + 1
 no_improvement_epoch_cutoff = 100
 adam_betas = (0.9, 0.95)
 weight_decay = 1e-5

@@ -130,18 +130,6 @@ if __name__ == "__main__":
     log_file = c.log_dir / f"{start_time}@test.log"
     logger = init_logger(log_file.resolve())
 
-    test_dataloader = prepare_dataloader(
-        c.data_path, c.experiment_name, 'test', c.allowed_datapoints, c.batch_size
-    )
-
-    model, optim, weight_scheduler = init_model()
-
-    saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
-
-    load(saved_state_file.resolve(), model, optim)
-
-    test_losses = []
-
     if c.load_eval_data:
         df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
@@ -149,6 +137,18 @@ if __name__ == "__main__":
         calib_df = pd.read_csv(calib_df_file.resolve())
 
     else:
+
+        test_dataloader = prepare_dataloader(
+            c.data_path, c.experiment_name, 'test', c.allowed_datapoints, c.batch_size
+        )
+
+        model, optim, weight_scheduler = init_model()
+
+        saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
+
+        load(saved_state_file.resolve(), model, optim)
+
+        test_losses = []
 
         model.eval()
 

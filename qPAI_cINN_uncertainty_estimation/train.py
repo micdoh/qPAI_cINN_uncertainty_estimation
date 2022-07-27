@@ -13,11 +13,11 @@ from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 def save_losses(loss_type: str, losses: list, output_dir, start_time):
     losses_file = output_dir / f"{start_time}@{loss_type}.npy"
-    losses = np.array([losses])
+    losses = np.array(losses)
     if c.load_for_training:
         with open(losses_file.resolve(), "rb") as f:
             prev_losses = np.load(f)
-            losses = np.concatenate((prev_losses, losses), axis=0)
+            losses = np.append(prev_losses, losses)
     with open(losses_file.resolve(), "wb") as f:
         np.save(f, losses)
 
