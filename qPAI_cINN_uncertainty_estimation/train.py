@@ -14,7 +14,7 @@ from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 def save_losses(loss_type: str, losses: list, output_dir, start_time):
     losses_file = output_dir / f"{start_time}@{loss_type}.npy"
     losses = np.array(losses)
-    if c.load_for_training:
+    if c.load_for_retraining:
         with open(losses_file.resolve(), "rb") as f:
             prev_losses = np.load(f)
             losses = np.append(prev_losses, losses)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     model, optim, weight_scheduler = init_model()
 
-    if c.load_for_training:
+    if c.load_for_retraining:
         saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
         load(saved_state_file.resolve(), model, optim)
         optim.param_groups[0]['capturable'] = True
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
         epoch_losses = []
         valid_losses = []
-        i_epoch = get_last_epoch(output_dir) if c.load_for_training else 0
+        i_epoch = get_last_epoch(output_dir) if c.load_for_retraining else 0
         no_improvement_epochs = 0
 
         while True:

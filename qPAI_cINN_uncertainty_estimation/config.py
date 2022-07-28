@@ -56,8 +56,9 @@ load_date = '2022-07-25_16_13_12'  # Wider model, less blocks, without FCN, flex
 #load_eval_data_date = '2022-07-24_18_14_43'  # Wide model, less blocks, with FCN, 10 wavelengths train, 40 wavelengths eval
 #load_eval_data_date = '2022-07-25_15_15_11'  # Wide model, less blocks, without FCN, 40 wavelengths train and eval
 #load_eval_data_date = '2022-07-25_15_32_04'  # Wide model, less blocks, without FCN, 40 wavelengths train, 10 eval
-load_eval_data_date = '2022-07-26_14_45_48'  # Flexi, 10 eval
-load_for_training = True
+#load_eval_data_date = '2022-07-26_14_45_48'  # Flexi, 10 eval
+load_eval_data_date = '2022-07-27_16_58_04'  # Flexi, 40 eval
+load_for_retraining = False
 
 #######################
 #  Training schedule  #
@@ -74,8 +75,3 @@ lr = 1e-3
 decay_by = 0.01
 gamma = decay_by ** (1.0 / min_epochs)
 clip_gradients = True
-
-
-def model_id():
-    """FCN yes/no, blocks, inn_hidden, inn_nlayers, """
-

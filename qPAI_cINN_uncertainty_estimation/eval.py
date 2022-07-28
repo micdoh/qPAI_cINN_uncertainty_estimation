@@ -10,9 +10,18 @@ from qPAI_cINN_uncertainty_estimation.model import WrappedModel, save, load, ini
 from qPAI_cINN_uncertainty_estimation.data import prepare_dataloader
 from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
+from qPAI_cINN_uncertainty_estimation.viz import (
+    plot_calibration_and_uncertainty,
+    plot_calibration_curve,
+    plot_mean_median_difference,
+    plot_abs_error,
+    plot_rel_error,
+    plot_error_bars_preds_vs_g_truth,
+
+)
 
 
-def sample_posterior(data, label):
+def sample_posterior(model, data, label):
 
     for i in range(c.n_samples):
         rev_inputs = torch.randn_like(label)
@@ -29,7 +38,7 @@ def sample_posterior(data, label):
     return x_samples, means
 
 
-def calibration_error(test_loader, dir=None):
+def calibration_error(model, test_loader, dir=None):
     # how many different confidences to look at
     n_steps = 100
 
@@ -58,7 +67,7 @@ def calibration_error(test_loader, dir=None):
 
         x, y = x.to(c.device), y.to(c.device)
 
-        posteriors, means = sample_posterior(x, y)
+        posteriors, means = sample_posterior(model, x, y)
         means = means.mean(dim=1).unsqueeze(dim=1)
         g_truths = y.mean(dim=1).unsqueeze(dim=1)
 
@@ -121,7 +130,7 @@ def calibration_error(test_loader, dir=None):
     return df, calib_df
 
 
-if __name__ == "__main__":
+def test_model():
 
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
 
@@ -152,7 +161,7 @@ if __name__ == "__main__":
 
         model.eval()
 
-        df, calib_df = calibration_error(test_dataloader, dir=output_dir)
+        df, calib_df = calibration_error(model, test_dataloader, dir=output_dir)
 
         if c.save_eval_data:
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -167,119 +176,18 @@ if __name__ == "__main__":
 
     if c.visualisation:
 
-        def get_relative_iqrs(name):
-            return np.vstack((df["iqr_upper"]-df[name], df[name]-df["iqr_lower"]))
+        plot_calibration_and_uncertainty(calib_df, dir=output_dir)
+        plot_calibration_curve(calib_df, dir=output_dir)
+        plot_mean_median_difference(df, dir=output_dir)
+        plot_abs_error(df, dir=output_dir)
+        plot_rel_error(df, dir=output_dir)
+        plot_error_bars_preds_vs_g_truth(df, dir=output_dir)
 
-        mean_fig, mean_ax = plt.subplots()
-        mean_fig.subplots_adjust(top=0.8)
-        mean_ax.set_xlim(0, 100)
-        mean_ax.set_ylim(0, 100)
-        mean_ax.set_ylabel("Mean predicted sO2 (%)")
-        mean_ax.set_xlabel("Ground truth sO2 (%)")
-        x = df["g_truth"]*100
-        y = df["mean_pred"]*100
-        mean_ax.plot(np.arange(0, 100), np.arange(0, 100), color='k', linestyle='-', linewidth=2, zorder=100)
-        mean_ax.errorbar(
-            x, y,
-            yerr=get_relative_iqrs('mean_pred')*100,
-            elinewidth=0.1,
-            capsize=1,
-            ecolor='r',
-            errorevery=10,
-            markevery=10,
-            ls='none',
-            ms=1,
-            fmt='o'
-        )
-        mean_ax.set_title(f"Mean sO2 predictions of cINN based on 1000 samples")
-        mean_fig.show()
-
-        median_fig, median_ax = plt.subplots()
-        median_fig.subplots_adjust(top=0.8)
-        median_ax.set_xlim(0, 100)
-        median_ax.set_ylim(0, 100)
-        median_ax.set_ylabel("Median predicted sO2 (%)")
-        median_ax.set_xlabel("Ground truth sO2 (%)")
-        x = df["g_truth"]*100
-        y = df["median_pred"]*100
-        median_ax.plot(np.arange(0,100), np.arange(0,100), color='k', linestyle='-', linewidth=2, zorder=100)
-        median_ax.errorbar(
-            x, y,
-            yerr=get_relative_iqrs('median_pred')*100,
-            elinewidth=0.1,
-            capsize=1,
-            ecolor='r',
-            errorevery=10,
-            markevery=10,
-            ls='none',
-            ms=1,
-            fmt='o',
-            zorder=2
-        )
-        median_ax.set_title(f"Median sO2 predictions of cINN based on 1000 samples")
-        median_fig.show()
-
-        abs_err_fig, abs_err_ax = plt.subplots()
-        abs_err_ax.set_xlim(0, 100)
-        abs_err_ax.set_title('Absolute prediction error for predicted sO2 values')
-        abs_err_ax.set_xlabel('Ground truth sO2 (%)')
-        abs_err_ax.set_ylabel('Absolute error (%)')
-        abs_err_ax.scatter(df["g_truth"]*100, df["abs_err_median"]*100, s=1, label="Median prediction")
-        #abs_err_ax.scatter(df["g_truth"]*100, df["abs_err_mean"]*100, s=1, label="Mean prediction")
-        #abs_err_ax.legend()
-        abs_err_fig.show()
-
-        rel_err_fig, rel_err_ax = plt.subplots()
-        rel_err_ax.set_yscale('log')
-        rel_err_ax.set_xlim(0, 100)
-        rel_err_ax.set_title('Relative prediction error for predicted sO2 values')
-        rel_err_ax.set_xlabel('Ground truth sO2 (%)')
-        rel_err_ax.set_ylabel('Relative error (%)')
-        rel_err_ax.scatter(df["g_truth"]*100, df["rel_err_median"]*100, s=1, label="Median prediction")
-        #rel_err_ax.scatter(df["g_truth"]*100, df["rel_err_mean"]*100, s=1, label="Mean prediction")
-        #rel_err_ax.legend()
-        rel_err_fig.show()
-        
-        pred_diff_fig, pred_diff_ax = plt.subplots()
-        pred_diff_ax.set_xlim(0, 100)
-        pred_diff_ax.set_title('Difference between Mean/Median')
-        pred_diff_ax.set_xlabel('Ground truth sO2 (%)')
-        pred_diff_ax.set_ylabel('Mean - Median (%)')
-        pred_diff_ax.scatter(df["g_truth"]*100, df["mean_pred"]*100-df["median_pred"]*100, s=1, label="Median prediction")
-        pred_diff_fig.show()
-
-        plt.subplot(2, 1, 1)
-        plt.plot(calib_df['confidence'], calib_df['calib_err'])
-        plt.ylabel('Calibration error')
-        plt.subplot(2, 1, 2)
-        plt.plot(calib_df['confidence'], calib_df['uncert_interval'])
-        plt.ylabel('Median estimated uncertainty')
-        plt.xlabel('Confidence')
-        plt.show()
-        
-        calib_fig, calib_ax = plt.subplots()
-        calib_ax.set_xlim(0, 100)
-        calib_ax.set_ylim(0, 100)
-        calib_ax.set_title('cINN Calibration Curve')
-        calib_ax.set_xlabel('Confidence interval (%)')
-        calib_ax.set_ylabel('Ground truth inliers in interval (%)')
-        calib_ax.plot(calib_df['confidence']*100, calib_df['inliers']*100, label="Calibration curve")
-        calib_ax.plot(calib_df['confidence'] * 100, calib_df['confidence'] * 100, color='green', linestyle='--', label="Optimal")
-        calib_ax.legend()
-        calib_fig.show()
+        iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75]) * 100
 
         print(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
         print(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
         print(F'Med. est. uncertainty at 68% conf.:     {calib_df["uncert_interval"][68]*100:.1f}%')
-
-        #ranks = df.rank(pct=True)
-        #close_to_median = abs(ranks - 0.5)
-        #idx = close_to_median.idxmin()['rel_err_median']
-        #med = df['rel_err_median'][idx]
-        #median_err = np.abs(df['rel_err_median'].median()*100)
-        iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75])*100
-        #median_iqr_upper = df['iqr_upper'][idx]
-        #median_iqr_lower = df['iqr_lower'][idx]
         print(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
 
 
