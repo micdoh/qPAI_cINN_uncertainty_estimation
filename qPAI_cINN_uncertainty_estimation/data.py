@@ -14,12 +14,24 @@ def spectrum_normalisation(spectrum):
     return norm
 
 
+def set_ones(zeros, n_ones):
+    zeros[:n_ones] = 1
+    return zeros
+
+
 def spectrum_processing(spectrum, allowed_datapoints):
-    """Returns a normalised initial pressure spectrum with some of the values zeroed out"""
+    """Returns a normalised initial pressure spectrum with some of the values zeroed out
+    N.B. the spectrum is partitioned by the number of non-zero datapoints, so that each partition contains an equal
+    (or almost equal) amount of non-zero values. The non-zero values within each partition are randomly distributed."""
     num_non_zero_datapoints = random.choice(allowed_datapoints)
-    a = np.zeros(len(spectrum))
-    a[:num_non_zero_datapoints] = 1
-    np.random.shuffle(a)
+    if num_non_zero_datapoints > len(spectrum):
+        num_non_zero_datapoints = len(spectrum)
+    zeros_partitioned = np.array_split(np.zeros(len(spectrum)), num_non_zero_datapoints)
+    ones_partitioned = np.array_split(np.ones(num_non_zero_datapoints), num_non_zero_datapoints)
+    a_partitioned = [set_ones(zeros, int(sum(ones))) for zeros, ones in zip(zeros_partitioned, ones_partitioned)]
+    for a in a_partitioned:
+        np.random.shuffle(a)
+    a = np.concatenate(a_partitioned)
 
     incomplete_spectrum = list(np.multiply(a, np.array(spectrum)))
     non_zero_indices = np.nonzero(incomplete_spectrum)
