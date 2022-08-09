@@ -3,6 +3,7 @@ This script allows multiple models to be trained consecutively.
 The config options defined in config.py are altered between runs to vary the model parameters.
 """
 import numpy as np
+import qPAI_cINN_uncertainty_estimation.config as c
 from qPAI_cINN_uncertainty_estimation.train import train
 
 if __name__ == "__main__":
@@ -30,6 +31,9 @@ if __name__ == "__main__":
     for short_name, experiment_name in experiment_names.items():
 
         for label, n_wavelengths in allowed_wavelengths.items():
+
+            c.experiment_name = experiment_name
+            c.allowed_datapoints = n_wavelengths
 
             model_name = f"{short_name}_{label}"
 
