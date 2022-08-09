@@ -1,4 +1,4 @@
-import config as c
+import qPAI_cINN_uncertainty_estimation.config as c
 
 
 def config_string(file):
