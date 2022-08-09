@@ -130,13 +130,14 @@ def calibration_error(model, test_loader, dir=None):
     return df, calib_df
 
 
-def test_model():
+def eval_model(model_name=None):
 
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+    name = model_name if model_name else start_time
 
-    output_dir = c.output_dir / start_time
+    output_dir = c.output_dir / name
 
-    log_file = c.log_dir / f"{start_time}@test.log"
+    log_file = c.log_dir / f"{name}@test.log"
     logger = init_logger(log_file.resolve())
 
     if c.load_eval_data:
@@ -165,11 +166,11 @@ def test_model():
 
         if c.save_eval_data:
             output_dir.mkdir(parents=True, exist_ok=True)
-            df_file = output_dir / f"{start_time}@dataframe.csv"
-            calib_df_file = output_dir / f"{start_time}@calib_dataframe.csv"
+            df_file = output_dir / f"{name}@dataframe.csv"
+            calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
             df.to_csv(df_file.resolve())
             calib_df.to_csv(calib_df_file.resolve())
-            config_details_file = output_dir / f"{start_time}@test_config.txt"
+            config_details_file = output_dir / f"{name}@test_config.txt"
             logger.info(config_string(config_details_file.resolve()))
             logger.info(f"Data saved to: {df_file.resolve()}")
             logger.info(f"Calibration data saved to: {calib_df_file.resolve()}")
@@ -191,3 +192,5 @@ def test_model():
         print(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
 
 
+if __name__ == "__main__":
+    eval_model()

@@ -36,7 +36,7 @@ total_data_dims = 2  # Size of input/output data (not condition)
 use_fcn_layer = False
 cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_dim_out
 
-experiment_name = "FlowPhantom_insilico_complicated"
+experiment_name = ""
 allowed_datapoints = [40]
 
 n_samples = 1000  # Number of samples for inference

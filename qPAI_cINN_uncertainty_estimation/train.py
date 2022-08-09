@@ -11,8 +11,8 @@ from qPAI_cINN_uncertainty_estimation.init_log import init_logger
 from qPAI_cINN_uncertainty_estimation.monitoring import config_string
 
 
-def save_losses(loss_type: str, losses: list, output_dir, start_time):
-    losses_file = output_dir / f"{start_time}@{loss_type}.npy"
+def save_losses(loss_type: str, losses: list, output_dir, name):
+    losses_file = output_dir / f"{name}@{loss_type}.npy"
     losses = np.array(losses)
     if c.load_for_retraining:
         with open(losses_file.resolve(), "rb") as f:
@@ -30,7 +30,11 @@ def get_last_epoch(output_dir):
     return epoch_indices[-1]
 
 
-if __name__ == "__main__":
+def train(
+        model_name=None,
+        allowed_datapoints=c.allowed_datapoints,
+        experiment_name=c.experiment_name
+):
 
     model, optim, weight_scheduler = init_model()
 
@@ -44,14 +48,15 @@ if __name__ == "__main__":
         start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
 
     start = time.time()
+    name = model_name if model_name else start_time
 
-    output_dir = c.output_dir / start_time
+    output_dir = c.output_dir / name
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    log_file = c.log_dir / f"training_{start_time}.log"
+    log_file = c.log_dir / f"training_{name}.log"
     logger = init_logger(log_file.resolve())
 
-    config_details_file = output_dir / f"{start_time}@test_config.txt"
+    config_details_file = output_dir / f"{name}@train_config.txt"
     logger.info(config_string(config_details_file.resolve()))
 
     min_valid_loss = np.inf
@@ -69,10 +74,10 @@ if __name__ == "__main__":
 
             # N.B. initialising the dataloaders afresh with every epoch allows the masking to be re-performed
             training_dataloader = prepare_dataloader(
-                c.data_path, c.experiment_name, "training", c.allowed_datapoints, c.batch_size
+                c.data_path, experiment_name, "training", allowed_datapoints, c.batch_size
             )
             validation_dataloader = prepare_dataloader(
-                c.data_path, c.experiment_name, 'validation', c.allowed_datapoints, c.batch_size
+                c.data_path, experiment_name, 'validation', allowed_datapoints, c.batch_size
             )
 
             loss_history = []
@@ -105,7 +110,7 @@ if __name__ == "__main__":
                 optim.zero_grad()
                 loss_history.append(nll.item())
 
-            loss_file = output_dir / f"{start_time}@loss_epoch_{i_epoch}.npy"
+            loss_file = output_dir / f"{name}@loss_epoch_{i_epoch}.npy"
             with open(loss_file.resolve(), "wb") as f:
                 np.save(f, np.array([loss_history]))
 
@@ -113,7 +118,7 @@ if __name__ == "__main__":
             epoch_losses.append(epoch_loss)
 
             if i_epoch > 0 and (i_epoch % c.checkpoint_save_interval) == 0:
-                model_checkpoint_file = output_dir / f"{start_time}@cinn_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}"
+                model_checkpoint_file = output_dir / f"{name}@cinn_checkpoint_{i_epoch / c.checkpoint_save_interval:.1f}"
                 save(
                     model_checkpoint_file.resolve(),
                     optim,
@@ -142,7 +147,7 @@ if __name__ == "__main__":
             if min_valid_loss > valid_loss:
                 logger.info(f'Validation Loss Decreased({min_valid_loss:.6f}--->{valid_loss:.6f}) \t Saving The Model')
                 min_valid_loss = valid_loss
-                model_file = output_dir / f"{start_time}@cinn.pt"
+                model_file = output_dir / f"{name}@cinn.pt"
                 save(model_file.resolve(), optim, model)
                 no_improvement_epochs = 0
             else:
@@ -159,16 +164,20 @@ if __name__ == "__main__":
                 break
 
     except Exception as e:
-        model_abort_file = output_dir / f"{start_time}@cinn_ABORT.pt"
+        model_abort_file = output_dir / f"{name}@cinn_ABORT.pt"
         save(model_abort_file.resolve(), optim, model)
         raise e
 
     finally:  # Always save loss data
 
-        save_losses('epoch_losses', epoch_losses, output_dir, start_time)
+        save_losses('epoch_losses', epoch_losses, output_dir, name)
 
-        save_losses('valid_losses', valid_losses, output_dir, start_time)
+        save_losses('valid_losses', valid_losses, output_dir, name)
 
         logger.info(f"\n--- Min. validation loss = {min_valid_loss:.4f} ---\n")
 
         logger.info("--- %s seconds ---" % (time.time() - start))
+
+
+if __name__ == "__main__":
+    train()
