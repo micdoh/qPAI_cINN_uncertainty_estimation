@@ -8,7 +8,7 @@ Originally from: https://github.com/VLL-HD/analyzing_inverse_problems/
 """
 
 use_cuda = torch.cuda.is_available()
-device = torch.device("cuda" if use_cuda else "cpu")
+device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
 if use_cuda:
@@ -29,8 +29,8 @@ fcn_dim_out = 1
 inn_input_dim = 2
 lstm_input_dim = 2
 lstm_hidden = 100
-inn_hidden = 500
-inn_subnet_layers = 2
+inn_hidden = 512
+inn_subnet_layers = 1
 n_blocks = 8  # No. of invertible blocks in INN
 total_data_dims = 2  # Size of input/output data (not condition)
 use_fcn_layer = False
@@ -38,6 +38,7 @@ cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_
 
 experiment_name = ""
 allowed_datapoints = [40]
+partition_sparsity = True  # Partition spectra by sparsity with equal number of wavelengths in each partition
 
 n_samples = 1000  # Number of samples for inference
 
@@ -63,10 +64,10 @@ load_for_retraining = False
 #######################
 #  Training schedule  #
 #######################
-batch_size = 1024
+batch_size = 2048
 eps = 1e-6
 min_epochs = 900
-max_epochs = 2500
+max_epochs = 1600
 checkpoint_save_interval = max_epochs + 1
 no_improvement_epoch_cutoff = 100
 adam_betas = (0.9, 0.95)

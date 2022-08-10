@@ -9,16 +9,16 @@ from qPAI_cINN_uncertainty_estimation.train import train
 if __name__ == "__main__":
 
     allowed_wavelengths = {
-        '2': [2],
+        '3': [3],
         '5': [5],
         '10': [10],
-        '15': [15],
-        '20': [20],
+        #'15': [15],
+        #'20': [20],
         '25': [25],
-        '30': [30],
-        '35': [35],
+        #'30': [30],
+        #'35': [35],
         '40': [40],
-        '41': [41],
+        #'41': [41],
         'flexi': np.arange(3, 42),
     }
 
@@ -35,7 +35,9 @@ if __name__ == "__main__":
             c.experiment_name = experiment_name
             c.allowed_datapoints = n_wavelengths
 
-            model_name = f"{short_name}_{label}"
+            partitioned = 'partitioned' if c.partition_sparsity else 'unpartitioned'
+
+            model_name = f"{short_name}_{label}_{partitioned}"
 
             print(f"\n\n========== TRAINING {model_name} ==========\n")
 
@@ -44,4 +46,3 @@ if __name__ == "__main__":
                 experiment_name=experiment_name,
                 allowed_datapoints=n_wavelengths,
             )
-

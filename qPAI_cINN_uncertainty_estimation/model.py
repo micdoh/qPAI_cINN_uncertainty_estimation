@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def subnet(dims_in, dims_out):
     layers = []
-    for i in range(0, c.inn_subnet_layers):
+    for i in range(0, c.inn_subnet_layers-1):
         layers.append(nn.LeakyReLU())
         layers.append(nn.Linear(c.inn_hidden, c.inn_hidden))
     return nn.Sequential(
@@ -123,3 +123,6 @@ def init_model():
     weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=c.gamma)
 
     return model, optim, weight_scheduler
+
+
+# TODO - Create models for LSD, LSD-INN, SASD

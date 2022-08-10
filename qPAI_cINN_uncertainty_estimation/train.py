@@ -41,7 +41,7 @@ def train(
     if c.load_for_retraining:
         saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
         load(saved_state_file.resolve(), model, optim)
-        optim.param_groups[0]['capturable'] = True
+        optim.param_groups[0]['capturable'] = True  # Needs to be set to allow reloading for training
         start_time = c.load_date
 
     else:
@@ -139,7 +139,7 @@ def train(
                 valid_loss.append(nll.item())
 
             valid_loss = np.mean(np.array(valid_loss), axis=0)
-            logger.info(f'Epoch {i_epoch} \t '
+            logger.info(f'Model: {name} \t Epoch {i_epoch} \t '
                   f'Training Loss: {epoch_loss:.6f} \t '
                   f'Validation Loss: {valid_loss:.6f}')
             model.train()

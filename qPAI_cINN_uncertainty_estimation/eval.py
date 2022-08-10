@@ -186,10 +186,11 @@ def eval_model(model_name=None):
 
         iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75]) * 100
 
-        print(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
-        print(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
-        print(F'Med. est. uncertainty at 68% conf.:     {calib_df["uncert_interval"][68]*100:.1f}%')
-        print(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
+        logger.info(F'Model evaluated: {model_name}')
+        logger.info(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
+        logger.info(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
+        logger.info(F'Med. est. uncertainty at 68% conf.:     {calib_df["uncert_interval"][68]*100:.1f}%')
+        logger.info(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
 
 
 if __name__ == "__main__":
