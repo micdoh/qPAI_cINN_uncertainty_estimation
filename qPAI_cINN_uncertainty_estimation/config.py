@@ -16,6 +16,7 @@ if use_cuda:
     data_path = Path("../datasets")
     output_dir = Path("../output")
     log_dir = Path("../logs")
+    torch.cuda.set_device(device)
 else:
     print("CPU only")
     path = "C:\\Users\\dohert01\\PycharmProjects\\qPAI_cINN_uncertainty_estimation"

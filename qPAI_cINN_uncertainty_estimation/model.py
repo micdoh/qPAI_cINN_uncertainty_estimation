@@ -126,3 +126,4 @@ def init_model():
 
 
 # TODO - Create models for LSD, LSD-INN, SASD
+# TODO - Try a bidirectional LSTM...
