@@ -3,6 +3,7 @@ This script allows multiple models to be evaluated consecutively.
 The config options defined in config.py are altered between runs to vary the model parameters.
 """
 import numpy as np
+import pandas as pd
 import qPAI_cINN_uncertainty_estimation.config as c
 from qPAI_cINN_uncertainty_estimation.eval import eval_model
 
@@ -28,17 +29,33 @@ if __name__ == "__main__":
         'melanin': 'Skin_filtered',
     }
 
-    for short_name, experiment_name in experiment_names.items():
+    rows = []
 
-        for label, n_wavelengths in allowed_wavelengths.items():
+    for partitioned, bool in {'partitioned': True, 'unpartitioned': False}.items():
 
-            c.experiment_name = experiment_name
-            c.allowed_datapoints = n_wavelengths
+        c.partition_sparsity = bool
 
-            partitioned = 'partitioned' if c.partition_sparsity else 'unpartitioned'
+        for short_name, experiment_name in experiment_names.items():
 
-            model_name = f"{short_name}_{label}_{partitioned}"
+            for label, n_wavelengths in allowed_wavelengths.items():
 
-            print(f"\n\n========== EVALUATING {model_name} ==========\n")
+                c.experiment_name = experiment_name
+                c.allowed_datapoints = n_wavelengths
 
-            eval_model(model_name=model_name)
+                model_name = f"{short_name}_{label}_{partitioned}"
+
+                for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
+
+                    print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ==========\n")
+
+                    df, calib_df, row = eval_model(
+                        model_name=model_name,
+                        experiment_name=experiment_name,
+                        allowed_datapoints=sparsity,
+                    )
+
+                    rows.append(row)
+
+    final_df = pd.DataFrame(rows)
+    output_csv = c.output_dir / 'multiple_eval.csv'
+    final_df.to_csv(output_csv)

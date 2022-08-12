@@ -17,7 +17,9 @@ from qPAI_cINN_uncertainty_estimation.viz import (
     plot_abs_error,
     plot_rel_error,
     plot_error_bars_preds_vs_g_truth,
-
+    plot_training_epoch_losses,
+    plot_validation_epoch_losses,
+    plot_training_batch_losses,
 )
 
 
@@ -38,7 +40,7 @@ def sample_posterior(model, data, label):
     return x_samples, means
 
 
-def calibration_error(model, test_loader, dir=None):
+def evaluation_and_calibration(model, test_loader, dir=None):
     # how many different confidences to look at
     n_steps = 100
 
@@ -130,7 +132,11 @@ def calibration_error(model, test_loader, dir=None):
     return df, calib_df
 
 
-def eval_model(model_name=None):
+def eval_model(
+        model_name=None,
+        allowed_datapoints=c.allowed_datapoints,
+        experiment_name=c.experiment_name
+):
 
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
     name = model_name if model_name else start_time
@@ -141,56 +147,74 @@ def eval_model(model_name=None):
     logger = init_logger(log_file.resolve())
 
     if c.load_eval_data:
-        df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
-        calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
+
+        #df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
+        #calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
+        df_file = output_dir / f"{name}@dataframe.csv"
+        calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
         df = pd.read_csv(df_file.resolve())
         calib_df = pd.read_csv(calib_df_file.resolve())
 
     else:
 
         test_dataloader = prepare_dataloader(
-            c.data_path, c.experiment_name, 'test', c.allowed_datapoints, c.batch_size
+            c.data_path, experiment_name, 'test', allowed_datapoints, c.batch_size
         )
 
         model, optim, weight_scheduler = init_model()
 
-        saved_state_file = c.output_dir / c.load_date / f"{c.load_date}@cinn.pt"
+        saved_state_file = output_dir / f"{name}@cinn.pt"
 
         load(saved_state_file.resolve(), model, optim)
 
-        test_losses = []
-
         model.eval()
 
-        df, calib_df = calibration_error(model, test_dataloader, dir=output_dir)
+        df, calib_df = evaluation_and_calibration(model, test_dataloader, dir=output_dir)
 
-        if c.save_eval_data:
-            output_dir.mkdir(parents=True, exist_ok=True)
-            df_file = output_dir / f"{name}@dataframe.csv"
-            calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
-            df.to_csv(df_file.resolve())
-            calib_df.to_csv(calib_df_file.resolve())
-            config_details_file = output_dir / f"{name}@test_config.txt"
-            logger.info(config_string(config_details_file.resolve()))
-            logger.info(f"Data saved to: {df_file.resolve()}")
-            logger.info(f"Calibration data saved to: {calib_df_file.resolve()}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        df_file = output_dir / f"{name}@dataframe.csv"
+        calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
+        df.to_csv(df_file.resolve())
+        calib_df.to_csv(calib_df_file.resolve())
+        config_details_file = output_dir / f"{name}@test_config.txt"
+        logger.info(config_string(config_details_file.resolve()))
+        logger.info(f"Data saved to: {df_file.resolve()}")
+        logger.info(f"Calibration data saved to: {calib_df_file.resolve()}")
 
-    if c.visualisation:
+    if allowed_datapoints == 3:  # Only do this once per model
+        plot_training_batch_losses(name, dir=output_dir)
+        plot_training_epoch_losses(name, dir=output_dir)
+        plot_validation_epoch_losses(name, dir=output_dir)
 
-        plot_calibration_and_uncertainty(calib_df, dir=output_dir)
-        plot_calibration_curve(calib_df, dir=output_dir)
-        plot_mean_median_difference(df, dir=output_dir)
-        plot_abs_error(df, dir=output_dir)
-        plot_rel_error(df, dir=output_dir)
-        plot_error_bars_preds_vs_g_truth(df, dir=output_dir)
+    plot_calibration_and_uncertainty(calib_df, f'{name}_{allowed_datapoints}', dir=output_dir)
+    plot_calibration_curve(calib_df, f'{name}_{allowed_datapoints}', dir=output_dir)
+    plot_mean_median_difference(df, f'{name}_{allowed_datapoints}', dir=output_dir)
+    plot_abs_error(df, f'{name}_{allowed_datapoints}', dir=output_dir)
+    plot_rel_error(df, f'{name}_{allowed_datapoints}', dir=output_dir)
+    plot_error_bars_preds_vs_g_truth(df, f'{name}_{allowed_datapoints}', dir=output_dir)
 
-        iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75]) * 100
+    iqr_median_err = np.abs(df['rel_err_median']).quantile([0.25, 0.5, 0.75]) * 100
+    median_calib_err = np.median(np.abs(calib_df["calib_err"]))
+    calib_err_68 = calib_df["calib_err"][68]
+    med_uncert_68 = calib_df["uncert_interval"][68]
 
-        logger.info(F'Model evaluated: {model_name}')
-        logger.info(F'Median calibration error:               {np.median(np.abs(calib_df["calib_err"]))*100:.1f}%')
-        logger.info(F'Calibration error at 68% confidence:    {calib_df["calib_err"][68]*100:.1f}%')
-        logger.info(F'Med. est. uncertainty at 68% conf.:     {calib_df["uncert_interval"][68]*100:.1f}%')
-        logger.info(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
+    logger.info(F'Model evaluated: {model_name}')
+    logger.info(F'Median calibration error:               {median_calib_err*100:.1f}%')
+    logger.info(F'Calibration error at 68% confidence:    {calib_err_68*100:.1f}%')
+    logger.info(F'Median est. uncertainty at 68% conf.:     {med_uncert_68*100:.1f}%')
+    logger.info(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
+
+    row = {
+        'name': name,
+        'med_calib_err': median_calib_err,
+        'calib_err_68': calib_err_68,
+        'med_uncert_68': med_uncert_68,
+        'med_rel_err': iqr_median_err[0.5],
+        'iqr_lower': iqr_median_err[0.25],
+        'iqr_upper': iqr_median_err[0.75]
+    }
+
+    return df, calib_df, row
 
 
 if __name__ == "__main__":
