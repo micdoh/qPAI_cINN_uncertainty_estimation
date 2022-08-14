@@ -166,6 +166,7 @@ def train(
     except Exception as e:
         model_abort_file = output_dir / f"{name}@cinn_ABORT.pt"
         save(model_abort_file.resolve(), optim, model)
+        logger.error(str(e))
         raise e
 
     finally:  # Always save loss data
