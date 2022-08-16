@@ -144,7 +144,7 @@ def eval_model(
     output_dir = c.output_dir / name
 
     log_file = c.log_dir / f"{name}@test.log"
-    logger = init_logger(log_file.resolve())
+    logger = init_logger(log_file.resolve(), log_file.stem)
 
     if c.load_eval_data:
 

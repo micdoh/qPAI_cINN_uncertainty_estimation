@@ -54,7 +54,7 @@ def train(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log_file = c.log_dir / f"training_{name}.log"
-    logger = init_logger(log_file.resolve())
+    logger = init_logger(log_file.resolve(), log_file.stem)
 
     config_details_file = output_dir / f"{name}@train_config.txt"
     logger.info(config_string(config_details_file.resolve()))

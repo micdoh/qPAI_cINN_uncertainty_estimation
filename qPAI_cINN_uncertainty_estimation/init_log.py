@@ -1,9 +1,9 @@
 import logging
 
 
-def init_logger(log_file: str):
+def init_logger(log_file: str, logger_name: str):
     # create logger with 'spam_application'
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
     fh = logging.FileHandler(log_file)
