@@ -26,7 +26,7 @@ if __name__ == "__main__":
     experiment_names = {
         'phantom': 'FlowPhantom_insilico_complicated',
         'generic': 'NoSkin_filtered',
-        'melanin': 'Skin_filtered',
+        #'melanin': 'Skin_filtered',
     }
 
     rows = []
