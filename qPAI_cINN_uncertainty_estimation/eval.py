@@ -207,14 +207,18 @@ def eval_model(
     logger.info(F'Median est. uncertainty at 68% conf.:     {med_uncert_68*100:.1f}%')
     logger.info(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
 
+
+
     row = {
         'name': name,
+        'partitioned_eval': eval_str.split('_')[1],
+        'sparsity_eval': eval_str.split('_')[2],
         'med_calib_err': median_calib_err,
         'calib_err_68': calib_err_68,
         'med_uncert_68': med_uncert_68,
         'med_rel_err': iqr_median_err[0.5],
         'iqr_lower': iqr_median_err[0.25],
-        'iqr_upper': iqr_median_err[0.75]
+        'iqr_upper': iqr_median_err[0.75],
     }
 
     return df, calib_df, row
