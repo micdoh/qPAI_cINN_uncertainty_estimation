@@ -211,8 +211,8 @@ def eval_model(
 
     row = {
         'name': name,
-        'partitioned_eval': eval_str.split('_')[1],
-        'sparsity_eval': eval_str.split('_')[2],
+        'partitioned_eval': eval_str.split('_')[-2],
+        'sparsity_eval': eval_str.split('_')[-1],
         'med_calib_err': median_calib_err,
         'calib_err_68': calib_err_68,
         'med_uncert_68': med_uncert_68,
