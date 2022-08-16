@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
                     for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
 
-                        print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ==========\n")
+                        print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ({eval_part}) ==========\n")
 
                         df, calib_df, row = eval_model(
                             model_name=model_name,
