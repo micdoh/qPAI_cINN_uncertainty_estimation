@@ -40,7 +40,7 @@ def sample_posterior(model, data, label):
     return x_samples, means
 
 
-def evaluation_and_calibration(model, test_loader, dir=None):
+def evaluation_and_calibration(model, test_loader, dir=None, eval_str=''):
     # how many different confidences to look at
     n_steps = 100
 
@@ -106,7 +106,7 @@ def evaluation_and_calibration(model, test_loader, dir=None):
 
     if dir:
         dir.mkdir(parents=True, exist_ok=True)
-        file = dir / "calib_err_plot.png"
+        file = dir / f"calib_err_plot{eval_str}.png"
         plt.savefig(file.resolve())
 
     calib_df = pd.DataFrame({"confidence": confidences,
@@ -135,7 +135,8 @@ def evaluation_and_calibration(model, test_loader, dir=None):
 def eval_model(
         model_name=None,
         allowed_datapoints=c.allowed_datapoints,
-        experiment_name=c.experiment_name
+        experiment_name=c.experiment_name,
+        eval_str='',
 ):
 
     start_time = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
@@ -143,15 +144,15 @@ def eval_model(
 
     output_dir = c.output_dir / name
 
-    log_file = c.log_dir / f"{name}@test.log"
+    log_file = c.log_dir / f"{name}{eval_str}@test.log"
     logger = init_logger(log_file.resolve(), log_file.stem)
 
     if c.load_eval_data:
 
         #df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         #calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
-        df_file = output_dir / f"{name}@dataframe.csv"
-        calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
+        df_file = output_dir / f"{name}{eval_str}@dataframe.csv"
+        calib_df_file = output_dir / f"{name}{eval_str}@calib_dataframe.csv"
         df = pd.read_csv(df_file.resolve())
         calib_df = pd.read_csv(calib_df_file.resolve())
 
@@ -168,6 +169,8 @@ def eval_model(
         load(saved_state_file.resolve(), model, optim)
 
         model.eval()
+
+        output_dir = output_dir / eval_str
 
         df, calib_df = evaluation_and_calibration(model, test_dataloader, dir=output_dir)
 

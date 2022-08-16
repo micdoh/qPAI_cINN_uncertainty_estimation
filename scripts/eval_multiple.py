@@ -31,30 +31,34 @@ if __name__ == "__main__":
 
     rows = []
 
-    for partitioned, bool in {'partitioned': True, 'unpartitioned': False}.items():
+    for partitioned in ['partitioned', 'unpartitioned']:
 
-        c.partition_sparsity = bool
+        for eval_partitioned_bool in [True, False]:
 
-        for short_name, experiment_name in experiment_names.items():
+            c.partition_sparsity = eval_partitioned_bool
+            eval_part = 'eval_part' if eval_partitioned_bool else 'eval_unpart'
 
-            for label, n_wavelengths in allowed_wavelengths.items():
+            for short_name, experiment_name in experiment_names.items():
 
-                c.experiment_name = experiment_name
-                c.allowed_datapoints = n_wavelengths
+                for label, n_wavelengths in allowed_wavelengths.items():
 
-                model_name = f"{short_name}_{label}_{partitioned}"
+                    c.experiment_name = experiment_name
+                    c.allowed_datapoints = n_wavelengths
 
-                for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
+                    model_name = f"{short_name}_{label}_{partitioned}"
 
-                    print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ==========\n")
+                    for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
 
-                    df, calib_df, row = eval_model(
-                        model_name=model_name,
-                        experiment_name=experiment_name,
-                        allowed_datapoints=sparsity,
-                    )
+                        print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ==========\n")
 
-                    rows.append(row)
+                        df, calib_df, row = eval_model(
+                            model_name=model_name,
+                            experiment_name=experiment_name,
+                            allowed_datapoints=sparsity,
+                            eval_str=f'_{eval_part}_{sparsity_label}',
+                        )
+
+                        rows.append(row)
 
     final_df = pd.DataFrame(rows)
     output_csv = c.output_dir / 'multiple_eval.csv'
