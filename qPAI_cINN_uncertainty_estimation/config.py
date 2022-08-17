@@ -39,7 +39,7 @@ cond_length = seq_length * lstm_hidden if not use_fcn_layer else seq_length*fcn_
 
 experiment_name = ""
 allowed_datapoints = [40]
-partition_sparsity = False  # Partition spectra by sparsity with equal number of wavelengths in each partition
+partition_sparsity = True  # Partition spectra by sparsity with equal number of wavelengths in each partition
 
 n_samples = 1000  # Number of samples for inference
 
