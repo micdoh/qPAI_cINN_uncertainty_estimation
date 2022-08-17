@@ -151,6 +151,7 @@ def eval_model(
 
         #df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         #calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
+        output_dir = output_dir / eval_str
         df_file = output_dir / f"{name}{eval_str}@dataframe.csv"
         calib_df_file = output_dir / f"{name}{eval_str}@calib_dataframe.csv"
         df = pd.read_csv(df_file.resolve())
@@ -184,11 +185,6 @@ def eval_model(
         logger.info(f"Data saved to: {df_file.resolve()}")
         logger.info(f"Calibration data saved to: {calib_df_file.resolve()}")
 
-    if allowed_datapoints == 3:  # Only do this once per model
-        plot_training_batch_losses(name, dir=output_dir)
-        plot_training_epoch_losses(name, dir=output_dir)
-        plot_validation_epoch_losses(name, dir=output_dir)
-
     plot_calibration_and_uncertainty(calib_df, f'{name}_{allowed_datapoints}', dir=output_dir)
     plot_calibration_curve(calib_df, f'{name}_{allowed_datapoints}', dir=output_dir)
     plot_mean_median_difference(df, f'{name}_{allowed_datapoints}', dir=output_dir)
@@ -206,8 +202,6 @@ def eval_model(
     logger.info(F'Calibration error at 68% confidence:    {calib_err_68*100:.1f}%')
     logger.info(F'Median est. uncertainty at 68% conf.:     {med_uncert_68*100:.1f}%')
     logger.info(F'Median relative error and IQR: {iqr_median_err[0.5]:.1f}% \t ({iqr_median_err[0.25]:.1f}%, {iqr_median_err[0.75]:.1f}%)')
-
-
 
     row = {
         'name': name,
