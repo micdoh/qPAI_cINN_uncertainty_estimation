@@ -64,7 +64,10 @@ def plot_training_epoch_losses(name, dir=None):
     ax.set_xlabel('Epochs')
     ax.set_ylabel('NLL Loss')
     print(loss_data.shape)
-    ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
+    try:
+        ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
+    except IndexError:
+        ax.plot(np.arange(loss_data.shape[0]), loss_data)
     save_fig(dir, f"{name}_train_epoch_loss.png")
     fig.show()
 
