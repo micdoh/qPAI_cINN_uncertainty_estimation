@@ -13,6 +13,7 @@ def read_files_into_array(date: str,
     """Read files into a numpy array
     If seq = True, read a series of files and add an index"""
     dir = c.output_dir / date
+    print(dir)
     index = start_index
     if seq:
         while True:
@@ -62,6 +63,7 @@ def plot_training_epoch_losses(name, dir=None):
     ax.set_title('Training Loss')
     ax.set_xlabel('Epochs')
     ax.set_ylabel('NLL Loss')
+    print(loss_data.shape)
     ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
     save_fig(dir, f"{name}_train_epoch_loss.png")
     fig.show()
