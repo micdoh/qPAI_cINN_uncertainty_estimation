@@ -1,5 +1,6 @@
 import torch
 import pickle
+import sys
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -219,4 +220,4 @@ def eval_model(
 
 
 if __name__ == "__main__":
-    eval_model()
+    eval_model(sys.argv[1])

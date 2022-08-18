@@ -39,8 +39,9 @@ if __name__ == "__main__":
 
                     c.experiment_name = experiment_name
                     c.allowed_datapoints = n_wavelengths
+                    balanced = '_balanced' if c.balance_dataset else ''
 
-                    model_name = f"{short_name}_{label}_{partitioned}"
+                    model_name = f"{short_name}_{label}_{partitioned}{balanced}"
 
                     for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
 
