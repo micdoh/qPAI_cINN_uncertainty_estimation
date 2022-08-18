@@ -6,6 +6,48 @@ from torch.utils.data import Dataset, DataLoader
 import qPAI_cINN_uncertainty_estimation.config as c
 
 
+def load_spectra_file(file_path: str) -> tuple:
+    print("Loading data...")
+    data = np.load(file_path, allow_pickle=True)
+    wavelengths = data["wavelengths"]
+    oxygenations = data["oxygenations"]
+    spectra = data["spectra"]
+    distances = data["distances"]
+    depths = data["depths"]
+    melanin_concentration = data["melanin_concentration"]
+    background_oxygenation = data["background_oxygenation"]
+    if "timesteps" in data:
+        timesteps = data["timesteps"]
+    else:
+        timesteps = None
+    if "tumour_mask" in data:
+        tumour_mask = data["tumour_mask"]
+    else:
+        tumour_mask = None
+    if "reference_mask" in data:
+        reference_mask = data["reference_mask"]
+    else:
+        reference_mask = None
+    if "mouse_body_mask" in data:
+        mouse_body_mask = data["mouse_body_mask"]
+    else:
+        mouse_body_mask = None
+    if "background_mask" in data:
+        background_mask = data["background_mask"]
+    else:
+        background_mask = None
+    if "lu" in data:
+        lu = data["lu"]
+    else:
+        lu = None
+
+    print("Loading data...[DONE]")
+    return (wavelengths, oxygenations, lu, spectra, melanin_concentration,
+            background_oxygenation, distances, depths, timesteps,
+            tumour_mask, reference_mask,
+            mouse_body_mask, background_mask)
+
+
 def spectrum_normalisation(spectrum):
     """Applies z-score scaling to the initial pressure spectrum"""
     mean = np.mean(spectrum)
@@ -114,9 +156,9 @@ def prepare_dataloader(
     transform=reshape_and_float,
     target_transform=two_vector_float,
 ):
-    spectra_file = data_path / experiment_name / f"{train_val_test}_spectra.pt"
+    spectra_file = data_path / experiment_name / 'train_oxygenations_original_filtered.pt'#f"{train_val_test}_spectra.pt"
     oxygenations_file = (
-        data_path / experiment_name / f"{train_val_test}_oxygenations.pt"
+        data_path / experiment_name / 'train_spectra_original_filtered.pt'#f"{train_val_test}_oxygenations.pt"
     )
 
     spectra_original = torch.load(spectra_file)

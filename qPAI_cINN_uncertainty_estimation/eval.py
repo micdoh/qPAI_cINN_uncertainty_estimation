@@ -152,8 +152,8 @@ def eval_model(
         #df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@dataframe.csv"
         #calib_df_file = c.output_dir / c.load_eval_data_date / f"{c.load_eval_data_date}@calib_dataframe.csv"
         output_dir = output_dir / eval_str
-        df_file = output_dir / f"{name}{eval_str}@dataframe.csv"
-        calib_df_file = output_dir / f"{name}{eval_str}@calib_dataframe.csv"
+        df_file = output_dir / f"{name}@dataframe.csv"
+        calib_df_file = output_dir / f"{name}@calib_dataframe.csv"
         df = pd.read_csv(df_file.resolve())
         calib_df = pd.read_csv(calib_df_file.resolve())
 
