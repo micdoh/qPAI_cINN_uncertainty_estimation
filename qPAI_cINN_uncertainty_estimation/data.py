@@ -191,6 +191,7 @@ def prepare_dataloader(
         samples_weight = torch.from_numpy(samples_weight)
         sampler = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
 
+    # Separate if block from above to prevent needless recreation of sampler
     if sampler:
         print('Using WeightedRandomSampler to balance dataset')
         dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)  # N.B. sampler does shuffling

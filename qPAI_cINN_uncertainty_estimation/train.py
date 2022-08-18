@@ -67,7 +67,7 @@ def train(
         valid_losses = []
         i_epoch = get_last_epoch(output_dir) if c.load_for_retraining else 0
         no_improvement_epochs = 0
-        sampler = True
+        sampler = c.balance_dataset  # Set false if unbalanced dataset desired
 
         while True:
 
