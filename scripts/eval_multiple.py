@@ -13,20 +13,15 @@ if __name__ == "__main__":
         '3': [3],
         '5': [5],
         '10': [10],
-        #'15': [15],
-        #'20': [20],
         '25': [25],
-        #'30': [30],
-        #'35': [35],
         '40': [40],
-        #'41': [41],
         'flexi': np.arange(3, 42),
     }
 
     experiment_names = {
-        'phantom': 'FlowPhantom_insilico_complicated',
-        'generic': 'NoSkin_filtered',
-        #'melanin': 'Skin_filtered',
+        #'phantom': 'FlowPhantom_insilico_complicated',
+        #'generic': 'NoSkin_filtered',
+        'melanin': 'Skin_filtered',
     }
 
     rows = []
