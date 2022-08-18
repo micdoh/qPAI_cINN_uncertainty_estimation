@@ -156,9 +156,9 @@ def prepare_dataloader(
     transform=reshape_and_float,
     target_transform=two_vector_float,
 ):
-    spectra_file = data_path / experiment_name / 'train_oxygenations_original_filtered.pt'#f"{train_val_test}_spectra.pt"
+    spectra_file = data_path / experiment_name / f"{train_val_test}_spectra.pt"
     oxygenations_file = (
-        data_path / experiment_name / 'train_spectra_original_filtered.pt'#f"{train_val_test}_oxygenations.pt"
+        data_path / experiment_name / f"{train_val_test}_oxygenations.pt"
     )
 
     spectra_original = torch.load(spectra_file)
