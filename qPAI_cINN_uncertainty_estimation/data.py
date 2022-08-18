@@ -155,6 +155,7 @@ def prepare_dataloader(
     batch_size: int,
     transform=reshape_and_float,
     target_transform=two_vector_float,
+    sampler=None,
 ):
     spectra_file = data_path / experiment_name / f"{train_val_test}_spectra.pt"
     oxygenations_file = (
@@ -175,9 +176,28 @@ def prepare_dataloader(
         transform=transform,
         target_transform=target_transform,
     )
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    return dataloader
+    if sampler is True:
+        print('Creating WeightedRandomSampler to balance distribution of sO2 labels in dataset')
+        labels = []
+        for data, label in iter(dataset):
+            labels.append(np.array(label[0]))
+
+        hist, _ = np.histogram(labels)
+        weights = 1 / hist
+
+        # Need to map weights back to samples
+        samples_weight = np.array([weights[int(np.floor(label * 10))] for label in labels])
+        samples_weight = torch.from_numpy(samples_weight)
+        sampler = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
+
+    if sampler:
+        print('Using WeightedRandomSampler to balance dataset')
+        dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)  # N.B. sampler does shuffling
+    else:
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    return dataloader, sampler
 
 
 # Example calls of prepare_dataloader()

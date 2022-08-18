@@ -13,14 +13,14 @@ if __name__ == "__main__":
         #'5': [5],
         #'10': [10],
         #'25': [25],
-        #'40': [40],
-        'flexi': np.arange(3, 42),
+        '40': [40],
+        #'flexi': np.arange(3, 42),
     }
 
     experiment_names = {
         #'phantom': 'FlowPhantom_insilico_complicated',
-        #'generic': 'NoSkin_filtered',
-        'melanin': 'Skin_filtered',
+        'generic': 'NoSkin_filtered',
+        #: 'Skin_filtered',
     }
 
     for short_name, experiment_name in experiment_names.items():
@@ -31,8 +31,9 @@ if __name__ == "__main__":
             c.allowed_datapoints = n_wavelengths
 
             partitioned = 'partitioned' if c.partition_sparsity else 'unpartitioned'
+            balanced = '_balanced' if c.balance_dataset else ''
 
-            model_name = f"{short_name}_{label}_{partitioned}"
+            model_name = f"{short_name}_{label}_{partitioned}{balanced}"
 
             print(f"\n\n========== TRAINING {model_name} ==========\n")
 

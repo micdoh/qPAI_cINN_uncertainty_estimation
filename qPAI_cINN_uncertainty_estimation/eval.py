@@ -159,7 +159,7 @@ def eval_model(
 
     else:
 
-        test_dataloader = prepare_dataloader(
+        test_dataloader, _ = prepare_dataloader(
             c.data_path, experiment_name, 'test', allowed_datapoints, c.batch_size
         )
 

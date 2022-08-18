@@ -67,16 +67,17 @@ def train(
         valid_losses = []
         i_epoch = get_last_epoch(output_dir) if c.load_for_retraining else 0
         no_improvement_epochs = 0
+        sampler = True
 
         while True:
 
             i_epoch += 1
 
             # N.B. initialising the dataloaders afresh with every epoch allows the masking to be re-performed
-            training_dataloader = prepare_dataloader(
-                c.data_path, experiment_name, "training", allowed_datapoints, c.batch_size
+            training_dataloader, sampler = prepare_dataloader(
+                c.data_path, experiment_name, "training", allowed_datapoints, c.batch_size, sampler=sampler
             )
-            validation_dataloader = prepare_dataloader(
+            validation_dataloader, _ = prepare_dataloader(
                 c.data_path, experiment_name, 'validation', allowed_datapoints, c.batch_size
             )
 
