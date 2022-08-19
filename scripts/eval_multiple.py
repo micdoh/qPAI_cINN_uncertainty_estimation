@@ -4,10 +4,13 @@ The config options defined in config.py are altered between runs to vary the mod
 """
 import numpy as np
 import pandas as pd
+import matplotlib
 import qPAI_cINN_uncertainty_estimation.config as c
 from qPAI_cINN_uncertainty_estimation.eval import eval_model
 
 if __name__ == "__main__":
+
+    matplotlib.use('Agg')
 
     allowed_wavelengths = {
         '3': [3],
@@ -19,8 +22,8 @@ if __name__ == "__main__":
     }
 
     experiment_names = {
-        #'phantom': 'FlowPhantom_insilico_complicated',
-        #'generic': 'NoSkin_filtered',
+        'phantom': 'FlowPhantom_insilico_complicated',
+        'generic': 'NoSkin_filtered',
         'melanin': 'Skin_filtered',
     }
 

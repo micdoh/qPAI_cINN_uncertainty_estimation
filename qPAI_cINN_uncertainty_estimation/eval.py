@@ -105,11 +105,6 @@ def evaluation_and_calibration(model, test_loader, dir=None, eval_str=''):
     uncert_intervals = np.median(uncert_intervals, axis=1)
     calib_err = inliers - confidences
 
-    if dir:
-        dir.mkdir(parents=True, exist_ok=True)
-        file = dir / f"calib_err_plot{eval_str}.png"
-        plt.savefig(file.resolve())
-
     calib_df = pd.DataFrame({"confidence": confidences,
                              "uncert_interval": uncert_intervals,
                              "inliers": inliers,
