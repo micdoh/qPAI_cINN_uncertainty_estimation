@@ -214,10 +214,15 @@ def eval_model(
         'med_rel_err': iqr_median_err[0.5],
         'iqr_lower': iqr_median_err[0.25],
         'iqr_upper': iqr_median_err[0.75],
-    }
+    } if eval_str else {}
 
     return df, calib_df, row
 
 
 if __name__ == "__main__":
-    eval_model(sys.argv[1])
+    model_name = sys.argv[1]
+    eval_model(model_name)
+    output_dir = c.output_dir / model_name
+    plot_training_batch_losses(model_name, dir=output_dir)
+    plot_training_epoch_losses(model_name, dir=output_dir)
+    plot_validation_epoch_losses(model_name, dir=output_dir)
