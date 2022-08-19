@@ -161,7 +161,7 @@ def eval_model(
     else:
 
         test_dataloader, _ = prepare_dataloader(
-            c.data_path, experiment_name, 'test', allowed_datapoints, c.batch_size
+            c.data_path, experiment_name, 'test', allowed_datapoints, c.batch_size, sampler=c.balance_dataset
         )
 
         model, optim, weight_scheduler = init_model()
