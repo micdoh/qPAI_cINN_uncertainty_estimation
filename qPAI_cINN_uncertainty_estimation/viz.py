@@ -49,9 +49,9 @@ def get_relative_iqrs(name, df):
 def plot_training_batch_losses(name, dir=None):
     loss_data = read_files_into_array(name, 'loss_epoch', axis=1)
     fig, ax = plt.subplots()
-    ax.set_title('Training Loss')
-    ax.set_xlabel('Batch Number')
-    ax.set_ylabel('NLL Loss')
+    ax.set_title('Training Loss', fontsize=12)
+    ax.set_xlabel('Batch Number', fontsize=12)
+    ax.set_ylabel('NLL Loss', fontsize=12)
     ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
     save_fig(dir, f"{name}_train_batch_loss.png")
     #fig.show()
@@ -61,9 +61,9 @@ def plot_training_batch_losses(name, dir=None):
 def plot_training_epoch_losses(name, dir=None):
     loss_data = read_files_into_array(name, 'epoch_losses', seq=False, axis=0)
     fig, ax = plt.subplots()
-    ax.set_title('Training Loss')
-    ax.set_xlabel('Epochs')
-    ax.set_ylabel('NLL Loss')
+    ax.set_title('Training Loss', fontsize=12)
+    ax.set_xlabel('Epochs', fontsize=12)
+    ax.set_ylabel('NLL Loss', fontsize=12)
     try:
         ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
     except IndexError:
@@ -76,9 +76,9 @@ def plot_training_epoch_losses(name, dir=None):
 def plot_validation_epoch_losses(name, dir=None):
     loss_data = read_files_into_array(name, 'valid_losses', seq=False, axis=0)
     fig, ax = plt.subplots()
-    ax.set_title('Validation Losses')
-    ax.set_xlabel('Epochs')
-    ax.set_ylabel('NLL Loss')
+    ax.set_title('Validation Losses', fontsize=12)
+    ax.set_xlabel('Epochs', fontsize=12)
+    ax.set_ylabel('NLL Loss', fontsize=12)
     try:
         ax.plot(np.arange(loss_data.shape[1]), loss_data.T)
     except IndexError:
@@ -103,10 +103,10 @@ def plot_error_bars_preds_vs_g_truth(df, name, measure='median', dir=None):
     fig.subplots_adjust(top=0.8)
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)
-    ax.set_ylabel(f"{measure_str} predicted sO$_2$ [%]")
-    ax.set_xlabel("Ground truth sO$_2$ [%]")
+    ax.set_ylabel(f"{measure_str} predicted sO$_2$ [%]", fontsize=12)
+    ax.set_xlabel("Ground truth sO$_2$ [%]", fontsize=12)
     ax.plot(new_bin_df.index, new_bin_df['medians'], color='limegreen', linestyle='-', linewidth=2, zorder=120, label='median of medians')
-    ax.plot(np.arange(0, 100), np.arange(0, 100), color='k', linestyle='-', linewidth=2, zorder=100, label='optimal')
+    ax.plot(np.arange(0, 100), np.arange(0, 100), color='k', linestyle='-', linewidth=2, zorder=100, label='optimum')
     ax.errorbar(
         x, y,
         yerr=get_relative_iqrs(f'{measure}_pred', df) *100,
@@ -119,7 +119,7 @@ def plot_error_bars_preds_vs_g_truth(df, name, measure='median', dir=None):
         ms=1,
         fmt='o'
     )
-    ax.set_title(f"{measure_str} sO$_2$ predictions with IQR")
+    #ax.set_title(f"{measure_str} sO$_2$ predictions with IQR")
     ax.legend()
     save_fig(dir, f"{name}_{measure}_sO2_preds.png")
     #fig.show()
@@ -129,9 +129,9 @@ def plot_error_bars_preds_vs_g_truth(df, name, measure='median', dir=None):
 def plot_abs_error(df, name, measure='median', dir=None):
     fig, ax = plt.subplots()
     ax.set_xlim(0, 100)
-    ax.set_title(f'Absolute error for {measure} predicted sO$_2$')
-    ax.set_xlabel('Ground truth sO$_2$ [%]')
-    ax.set_ylabel('Absolute error [%]')
+    #ax.set_title(f'Absolute error for {measure} predicted sO$_2$', fontsize=12)
+    ax.set_xlabel('Ground truth sO$_2$ [%]', fontsize=12)
+    ax.set_ylabel('Absolute error [%]', fontsize=12)
     ax.scatter(df["g_truth"] * 100, df[f"abs_err_{measure}"] * 100, s=1, label=f"{measure} prediction")
     save_fig(dir, f"{name}_abs_error.png")
     #fig.show()
@@ -142,21 +142,49 @@ def plot_rel_error(df, name, measure='median', dir=None):
     fig, ax = plt.subplots()
     ax.set_yscale('log')
     ax.set_xlim(0, 100)
-    ax.set_title(f'Relative error for {measure} predicted sO$_2$')
-    ax.set_xlabel('Ground truth sO$_2$ [%]')
-    ax.set_ylabel('Relative error [%]')
+    #ax.set_title(f'Relative error for {measure} predicted sO$_2$', fontsize=12)
+    ax.set_xlabel('Ground truth sO$_2$ [%]', fontsize=12)
+    ax.set_ylabel('Relative error [%]', fontsize=12)
     ax.scatter(df["g_truth"] * 100, np.abs(df[f"rel_err_{measure}"]) * 100, s=1, label=f"{measure} prediction")
     save_fig(dir, f"{name}_rel_error.png")
     #fig.show()
+    plt.clf()
+
+def plot_rel_error_comparison(df1, df2, name1, name2, measure='median', dir=None):
+    fig, ax = plt.subplots()
+    ax.set_yscale('log')
+    ax.set_xlim(0, 100)
+    #ax.set_title(f'Relative error for {measure} predicted sO$_2$', fontsize=12)
+    ax.set_xlabel('Ground truth sO$_2$ [%]', fontsize=12)
+    ax.set_ylabel('Relative error [%]', fontsize=12)
+    ax.scatter(df1["g_truth"] * 100, np.abs(df1[f"rel_err_{measure}"]) * 100, s=1, alpha=0.5, label=name1)
+    ax.scatter(df2["g_truth"] * 100, np.abs(df2[f"rel_err_{measure}"]) * 100, s=1, alpha=0.5, label=name2)
+    ax.legend()
+    save_fig(dir, f"{name1}_{name2}_rel_error.png")
+    #fig.show()
+    plt.clf()
+
+def plot_abs_error_comparison(df1, df2, name1, name2, measure='median', dir=None):
+    fig, ax = plt.subplots()
+    ax.set_yscale('log')
+    ax.set_xlim(0, 100)
+    #ax.set_title(f'Absolute error for {measure} predicted sO$_2$', fontsize=12)
+    ax.set_xlabel('Ground truth sO$_2$ [%]', fontsize=12)
+    ax.set_ylabel('Absolute error [%]', fontsize=12)
+    ax.scatter(df1["g_truth"] * 100, np.abs(df1[f"abs_err_{measure}"]) * 100, s=1, alpha=0.5, label=name1)
+    ax.scatter(df2["g_truth"] * 100, np.abs(df2[f"abs_err_{measure}"]) * 100, s=1, alpha=0.5, label=name2)
+    ax.legend()
+    save_fig(dir, f"{name1}_{name2}_abs_error.png")
+    # fig.show()
     plt.clf()
 
 
 def plot_mean_median_difference(df, name, dir=None):
     fig, ax = plt.subplots()
     ax.set_xlim(0, 100)
-    ax.set_title('Difference between mean/median')
-    ax.set_xlabel('Ground truth sO$_2$ [%]')
-    ax.set_ylabel('Mean - Median [%]')
+    ax.set_title('Difference between mean/median', fontsize=12)
+    ax.set_xlabel('Ground truth sO$_2$ [%]', fontsize=12)
+    ax.set_ylabel('Mean - Median [%]', fontsize=12)
     ax.scatter(df["g_truth"] * 100, df["mean_pred"] * 100 - df["median_pred"] * 100, s=1)
     save_fig(dir, f"{name}_mean_median_diff.png")
     #fig.show()
@@ -180,12 +208,12 @@ def plot_calibration_curve(calib_df, name, dir=None):
     calib_fig, calib_ax = plt.subplots()
     calib_ax.set_xlim(0, 100)
     calib_ax.set_ylim(0, 100)
-    calib_ax.set_title('Calibration Curve')
-    calib_ax.set_xlabel('Confidence interval [%]')
-    calib_ax.set_ylabel('Ground truth inliers in interval [%]')
+    #calib_ax.set_title('Calibration Curve', fontsize=12)
+    calib_ax.set_xlabel('Confidence interval [%]', fontsize=12)
+    calib_ax.set_ylabel('Ground truth inliers in interval [%]', fontsize=12)
     calib_ax.plot(calib_df['confidence'] * 100, calib_df['inliers'] * 100, label="calibration curve")
     calib_ax.plot(calib_df['confidence'] * 100, calib_df['confidence'] * 100, color='green', linestyle='--',
-                  label="optimal")
+                  label="optimum")
     calib_ax.legend()
     save_fig(dir, f"{name}_calib_curve.png")
     #calib_fig.show()

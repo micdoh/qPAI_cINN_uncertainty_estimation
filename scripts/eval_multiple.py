@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib
 import qPAI_cINN_uncertainty_estimation.config as c
 from qPAI_cINN_uncertainty_estimation.eval import eval_model
+from qPAI_cINN_uncertainty_estimation.viz import plot_abs_error_comparison, plot_rel_error_comparison
 
 if __name__ == "__main__":
 
@@ -46,7 +47,8 @@ if __name__ == "__main__":
 
                     model_name = f"{short_name}_{label}_{partitioned}{balanced}"
 
-                    for sparsity_label, sparsity in {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}.items():
+                    eval_sparsities = {'3': [3], '5': [5], '10': [10], '25': [25], '40': [40]}
+                    for sparsity_label, sparsity in eval_sparsities.items():
 
                         print(f"\n\n========== EVALUATING {model_name} at {sparsity_label} wavelengths ({eval_part}) ==========\n")
 
